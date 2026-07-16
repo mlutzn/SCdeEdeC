@@ -6,7 +6,7 @@ import controller.MantenimientoController;
 
 import javax.swing.*;
 
-public class SCdeEdeC {
+public class SCdeEdeCApplication {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
