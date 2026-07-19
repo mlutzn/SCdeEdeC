@@ -9,10 +9,10 @@ import java.util.List;
 
 public class MantenimientoDAO {
 
-    private static final String TABLA = "SCdeEdeC_mantenimientos";
+    private static final String TABLA = "SCdeEdeC_Mantenimiento";
 
-    public boolean registrar(Mantenimiento m) {
-        String sql = "INSERT INTO " + TABLA + " (id_equipo, descripcion, fecha, tipo, tecnico, observaciones) VALUES (?, ?, ?, ?, ?, ?)";
+    public void registrar(Mantenimiento m) throws SQLException {
+        String sql = "INSERT INTO " + TABLA + " (idEquipo, descripcion, fecha, tipo, tecnico, observaciones) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -24,24 +24,17 @@ public class MantenimientoDAO {
             pstmt.setString(5, m.getTecnico());
             pstmt.setString(6, m.getObservaciones());
 
-            int filas = pstmt.executeUpdate();
-            if (filas > 0) {
-                ResultSet rs = pstmt.getGeneratedKeys();
+            pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     m.setIdMantenimiento(rs.getInt(1));
                 }
-                return true;
             }
-            return false;
-
-        } catch (SQLException e) {
-            System.err.println("❌ Error al registrar: " + e.getMessage());
-            e.printStackTrace();
-            return false;
         }
     }
 
-    public List<Mantenimiento> obtenerTodos() {
+    public List<Mantenimiento> obtenerTodos() throws SQLException {
         List<Mantenimiento> lista = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLA + " ORDER BY fecha DESC";
 
@@ -52,54 +45,45 @@ public class MantenimientoDAO {
             while (rs.next()) {
                 lista.add(mapearMantenimiento(rs));
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al obtener todos: " + e.getMessage());
-            e.printStackTrace();
         }
         return lista;
     }
 
-    public List<Mantenimiento> obtenerPorEquipo(int idEquipo) {
+    public List<Mantenimiento> obtenerPorEquipo(int idEquipo) throws SQLException {
         List<Mantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT * FROM " + TABLA + " WHERE id_equipo = ? ORDER BY fecha DESC";
+        String sql = "SELECT * FROM " + TABLA + " WHERE idEquipo = ? ORDER BY fecha DESC";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, idEquipo);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                lista.add(mapearMantenimiento(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearMantenimiento(rs));
+                }
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al obtener por equipo: " + e.getMessage());
-            e.printStackTrace();
         }
         return lista;
     }
 
-    public Mantenimiento obtenerPorId(int id) {
-        String sql = "SELECT * FROM " + TABLA + " WHERE id_mantenimiento = ?";
+    public Mantenimiento obtenerPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM " + TABLA + " WHERE idMantenimiento = ?";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                return mapearMantenimiento(rs);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapearMantenimiento(rs);
+                }
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al obtener por ID: " + e.getMessage());
-            e.printStackTrace();
         }
         return null;
     }
 
-    public boolean actualizar(Mantenimiento m) {
-        String sql = "UPDATE " + TABLA + " SET id_equipo = ?, descripcion = ?, fecha = ?, tipo = ?, tecnico = ?, observaciones = ? WHERE id_mantenimiento = ?";
+    public void actualizar(Mantenimiento m) throws SQLException {
+        String sql = "UPDATE " + TABLA + " SET idEquipo = ?, descripcion = ?, fecha = ?, tipo = ?, tecnico = ?, observaciones = ? WHERE idMantenimiento = ?";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -112,32 +96,22 @@ public class MantenimientoDAO {
             pstmt.setString(6, m.getObservaciones());
             pstmt.setInt(7, m.getIdMantenimiento());
 
-            return pstmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            System.err.println("❌ Error al actualizar: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            pstmt.executeUpdate();
         }
     }
 
-    public boolean eliminar(int id) {
-        String sql = "DELETE FROM " + TABLA + " WHERE id_mantenimiento = ?";
+    public void eliminar(int id) throws SQLException {
+        String sql = "DELETE FROM " + TABLA + " WHERE idMantenimiento = ?";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, id);
-            return pstmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            System.err.println("❌ Error al eliminar: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            pstmt.executeUpdate();
         }
     }
 
-    public int contar() {
+    public int contar() throws SQLException {
         String sql = "SELECT COUNT(*) FROM " + TABLA;
 
         try (Connection conn = ConexionBD.getConnection();
@@ -147,23 +121,20 @@ public class MantenimientoDAO {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al contar: " + e.getMessage());
-            e.printStackTrace();
         }
         return 0;
     }
 
     private Mantenimiento mapearMantenimiento(ResultSet rs) throws SQLException {
         Mantenimiento m = new Mantenimiento();
-        m.setIdMantenimiento(rs.getInt("id_mantenimiento"));
-        m.setIdEquipo(rs.getInt("id_equipo"));
+        m.setIdMantenimiento(rs.getInt("idMantenimiento"));
+        m.setIdEquipo(rs.getInt("idEquipo"));
         m.setDescripcion(rs.getString("descripcion"));
         m.setFecha(rs.getDate("fecha"));
         m.setTipo(rs.getString("tipo"));
         m.setTecnico(rs.getString("tecnico"));
         m.setObservaciones(rs.getString("observaciones"));
-        m.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+        m.setFechaRegistro(rs.getTimestamp("fechaRegistro"));
         return m;
     }
 }

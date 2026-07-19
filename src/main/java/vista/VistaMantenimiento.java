@@ -1,11 +1,18 @@
 package vista;
 
+import modelo.EquipoItem;
+import modelo.UsuarioItem;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+import static util.IconUtil.cargarIcono;
+
 public class VistaMantenimiento extends JFrame {
-    private JTextField txtIdEquipo, txtDescripcion, txtTecnico, txtIdBuscar;
+    private JTextField txtDescripcion, txtIdBuscar;
+    private JComboBox<EquipoItem> cmbEquipo;
+    private JComboBox<UsuarioItem> cmbTecnico;
     private JComboBox<String> cmbTipo;
     private JTextArea txtObservaciones;
     private JButton btnRegistrar, btnConsultar, btnLimpiar, btnEliminar, btnBuscarEquipo;
@@ -16,7 +23,7 @@ public class VistaMantenimiento extends JFrame {
     public VistaMantenimiento() {
         setTitle("📋 Sistema de Control de Equipos - Mantenimientos");
         setSize(1100, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         setLocationRelativeTo(null);
 
@@ -33,10 +40,10 @@ public class VistaMantenimiento extends JFrame {
 
         int row = 0;
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.2;
-        panelFormulario.add(new JLabel("ID Equipo:"), gbc);
+        panelFormulario.add(new JLabel("Equipo asignado:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
-        txtIdEquipo = new JTextField(10);
-        panelFormulario.add(txtIdEquipo, gbc);
+        cmbEquipo = new JComboBox<>();
+        panelFormulario.add(cmbEquipo, gbc);
 
         row++;
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.2;
@@ -56,8 +63,8 @@ public class VistaMantenimiento extends JFrame {
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.2;
         panelFormulario.add(new JLabel("Técnico:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
-        txtTecnico = new JTextField(20);
-        panelFormulario.add(txtTecnico, gbc);
+        cmbTecnico = new JComboBox<>();
+        panelFormulario.add(cmbTecnico, gbc);
 
         row++;
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.2;
@@ -74,15 +81,15 @@ public class VistaMantenimiento extends JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         btnRegistrar = new JButton("💾 Registrar");
         btnRegistrar.setBackground(new Color(40, 167, 69));
-        btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setForeground(Color.BLACK);
 
-        btnLimpiar = new JButton("🧹 Limpiar");
+        btnLimpiar = new JButton("Limpiar", cargarIcono("/icons/broom.png", 13, 13));
         btnLimpiar.setBackground(new Color(108, 117, 125));
-        btnLimpiar.setForeground(Color.WHITE);
+        btnLimpiar.setForeground(Color.BLACK);
 
         btnBuscarEquipo = new JButton("🔍 Buscar por Equipo");
         btnBuscarEquipo.setBackground(new Color(0, 123, 255));
-        btnBuscarEquipo.setForeground(Color.WHITE);
+        btnBuscarEquipo.setForeground(Color.BLACK);
 
         panelBotones.add(btnRegistrar);
         panelBotones.add(btnLimpiar);
@@ -100,11 +107,11 @@ public class VistaMantenimiento extends JFrame {
         panelBusqueda.add(txtIdBuscar);
         btnConsultar = new JButton("📋 Ver Todos");
         btnConsultar.setBackground(new Color(23, 162, 184));
-        btnConsultar.setForeground(Color.WHITE);
+        btnConsultar.setForeground(Color.BLACK);
         panelBusqueda.add(btnConsultar);
         btnEliminar = new JButton("🗑️ Eliminar Seleccionado");
         btnEliminar.setBackground(new Color(220, 53, 69));
-        btnEliminar.setForeground(Color.WHITE);
+        btnEliminar.setForeground(Color.BLACK);
         panelBusqueda.add(btnEliminar);
 
         // Panel stats
@@ -133,7 +140,7 @@ public class VistaMantenimiento extends JFrame {
         tablaMantenimientos.setRowHeight(25);
         tablaMantenimientos.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tablaMantenimientos.getTableHeader().setBackground(new Color(52, 58, 64));
-        tablaMantenimientos.getTableHeader().setForeground(Color.WHITE);
+        tablaMantenimientos.getTableHeader().setForeground(Color.BLACK);
 
         JScrollPane scrollTabla = new JScrollPane(tablaMantenimientos);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("📋 Historial de Mantenimientos"));
@@ -150,9 +157,9 @@ public class VistaMantenimiento extends JFrame {
     }
 
     // Getters
-    public JTextField getTxtIdEquipo() { return txtIdEquipo; }
+    public JComboBox<EquipoItem> getCmbEquipo() { return cmbEquipo; }
+    public JComboBox<UsuarioItem> getCmbTecnico() { return cmbTecnico; }
     public JTextField getTxtDescripcion() { return txtDescripcion; }
-    public JTextField getTxtTecnico() { return txtTecnico; }
     public JTextField getTxtIdBuscar() { return txtIdBuscar; }
     public JComboBox<String> getCmbTipo() { return cmbTipo; }
     public JTextArea getTxtObservaciones() { return txtObservaciones; }
@@ -166,9 +173,9 @@ public class VistaMantenimiento extends JFrame {
     public JLabel getLblTotal() { return lblTotal; }
 
     public void limpiarCampos() {
-        txtIdEquipo.setText("");
+        cmbEquipo.setSelectedIndex(-1);
+        cmbTecnico.setSelectedIndex(-1);
         txtDescripcion.setText("");
-        txtTecnico.setText("");
         txtObservaciones.setText("");
         cmbTipo.setSelectedIndex(0);
         txtIdBuscar.setText("");
