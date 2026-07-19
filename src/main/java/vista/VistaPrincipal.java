@@ -1,5 +1,6 @@
 package vista;
 
+import controller.EquipoController;
 import controller.UsuarioController;
 import controller.MantenimientoController;
 
@@ -22,6 +23,13 @@ public class VistaPrincipal extends JFrame {
         JLabel lblTitulo = new JLabel("Sistema de Control de Equipos");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton btnEquipo = new JButton("🖥️ Gestión de Equipos");
+        btnEquipo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnEquipo.setMaximumSize(new Dimension(300, 40));
+        btnEquipo.setBackground(new Color(0, 123, 255));
+        btnEquipo.setForeground(Color.BLACK);
+        btnEquipo.addActionListener(e -> abrirEquipos());
 
         JButton btnUsuarios = new JButton("👤 Gestión de Usuarios");
         btnUsuarios.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -46,6 +54,8 @@ public class VistaPrincipal extends JFrame {
 
         panel.add(lblTitulo);
         panel.add(Box.createRigidArea(new Dimension(0, 30)));
+        panel.add(btnEquipo);
+        panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(btnUsuarios);
         panel.add(Box.createRigidArea(new Dimension(0, 15)));
         panel.add(btnMantenimientos);
@@ -56,6 +66,10 @@ public class VistaPrincipal extends JFrame {
         setVisible(true);
     }
 
+    private void abrirEquipos() {
+        VistaEquipo vista = new VistaEquipo();
+        new EquipoController(vista);
+    }
     private void abrirUsuarios() {
         VistaUsuario vista = new VistaUsuario();
         new UsuarioController(vista);

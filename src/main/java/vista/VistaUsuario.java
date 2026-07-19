@@ -229,9 +229,7 @@ public class VistaUsuario extends JFrame {
         txtApellido.setText("");
         txtEmail.setText("");
         txtTelefono.setText("");
-        if (cmbEquipo.getItemCount() > 0) {
-            cmbEquipo.setSelectedIndex(0);
-        }
+        cmbEquipo.setSelectedIndex(-1);
     }
 
     // Popups para comunicarle al usuario qué pasó

@@ -1,17 +1,21 @@
 package controller;
 
+import dao.EquipoDAO;
+import dao.UsuarioDAO;
+import modelo.EquipoItem;
 import modelo.Mantenimiento;
+import modelo.UsuarioItem;
 import service.MantenimientoService;
 import vista.VistaMantenimiento;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MantenimientoController {
 
@@ -19,12 +23,17 @@ public class MantenimientoController {
     private MantenimientoService service;
     private SimpleDateFormat sdf;
 
+    // idEquipo -> "tipo - marca modelo", para mostrar el nombre en la tabla en vez del ID crudo
+    private Map<Integer, String> mapaEquipos = new HashMap<>();
+
     public MantenimientoController(VistaMantenimiento vista) {
         this.vista = vista;
         this.service = new MantenimientoService();
         this.sdf = new SimpleDateFormat("dd/MM/yyyy");
 
         iniciarEventos();
+        cargarEquipos();
+        cargarTecnicos();
         cargarTodos();
     }
 
@@ -47,20 +56,60 @@ public class MantenimientoController {
         });
     }
 
+    private void cargarEquipos() {
+        try {
+            List<EquipoItem> equipos = new EquipoDAO().listarParaCombo();
+
+            vista.getCmbEquipo().removeAllItems();
+            mapaEquipos.clear();
+
+            for (EquipoItem eq : equipos) {
+                vista.getCmbEquipo().addItem(eq);
+                mapaEquipos.put(eq.getIdEquipo(), eq.getDescripcion());
+            }
+            vista.getCmbEquipo().setSelectedIndex(-1);
+        } catch (SQLException ex) {
+            vista.mostrarError("No se pudieron cargar los equipos: " + ex.getMessage());
+        }
+    }
+
+    private void cargarTecnicos() {
+        try {
+            List<UsuarioItem> usuarios = new UsuarioDAO().listarParaCombo();
+            vista.getCmbTecnico().removeAllItems();
+            for (UsuarioItem u : usuarios) {
+                vista.getCmbTecnico().addItem(u);
+            }
+            vista.getCmbTecnico().setSelectedIndex(-1);
+        } catch (SQLException ex) {
+            vista.mostrarError("No se pudieron cargar los técnicos: " + ex.getMessage());
+        }
+    }
+
     private void registrar() {
         try {
-            int idEquipo = Integer.parseInt(vista.getTxtIdEquipo().getText().trim());
+            EquipoItem equipoSel = (EquipoItem) vista.getCmbEquipo().getSelectedItem();
+            UsuarioItem tecnicoSel = (UsuarioItem) vista.getCmbTecnico().getSelectedItem();
+
+            if (equipoSel == null) {
+                vista.mostrarError("❌ No hay equipos cargados. Registrá un equipo primero.");
+                return;
+            }
+            if (tecnicoSel == null) {
+                vista.mostrarError("❌ No hay usuarios cargados para asignar como técnico.");
+                return;
+            }
+
             String descripcion = vista.getTxtDescripcion().getText().trim();
             String tipo = (String) vista.getCmbTipo().getSelectedItem();
-            String tecnico = vista.getTxtTecnico().getText().trim();
             String observaciones = vista.getTxtObservaciones().getText().trim();
 
             Mantenimiento m = new Mantenimiento();
-            m.setIdEquipo(idEquipo);
+            m.setIdEquipo(equipoSel.getIdEquipo());
             m.setDescripcion(descripcion);
             m.setFecha(new Date());
             m.setTipo(tipo);
-            m.setTecnico(tecnico);
+            m.setTecnico(tecnicoSel.getNombreCompleto());
             m.setObservaciones(observaciones);
 
             service.registrar(m);
@@ -68,8 +117,6 @@ public class MantenimientoController {
             vista.limpiarCampos();
             cargarTodos();
 
-        } catch (NumberFormatException e) {
-            vista.mostrarError("❌ El ID del equipo debe ser un número válido.");
         } catch (IllegalArgumentException e) {
             vista.mostrarError("❌ " + e.getMessage());
         } catch (SQLException e) {
@@ -89,17 +136,14 @@ public class MantenimientoController {
 
     private void buscarPorEquipo() {
         try {
-            String texto = vista.getTxtIdEquipo().getText().trim();
-            if (texto.isEmpty()) {
-                vista.mostrarError("Ingrese un ID de equipo.");
+            EquipoItem equipoSel = (EquipoItem) vista.getCmbEquipo().getSelectedItem();
+            if (equipoSel == null) {
+                vista.mostrarError("No hay equipo seleccionado.");
                 return;
             }
-            int idEquipo = Integer.parseInt(texto);
-            List<Mantenimiento> lista = service.obtenerPorEquipo(idEquipo);
+            List<Mantenimiento> lista = service.obtenerPorEquipo(equipoSel.getIdEquipo());
             mostrarEnTabla(lista);
             vista.mostrarMensaje("🔍 Se encontraron " + lista.size() + " mantenimientos.");
-        } catch (NumberFormatException e) {
-            vista.mostrarError("ID inválido.");
         } catch (SQLException e) {
             manejarErrorSQL(e);
         }
@@ -154,9 +198,11 @@ public class MantenimientoController {
 
     private void agregarFila(Mantenimiento m) {
         DefaultTableModel model = vista.getModeloTabla();
+        String nombreEquipo = mapaEquipos.getOrDefault(m.getIdEquipo(), "ID " + m.getIdEquipo());
+
         model.addRow(new Object[]{
                 m.getIdMantenimiento(),
-                m.getIdEquipo(),
+                nombreEquipo,
                 m.getDescripcion(),
                 sdf.format(m.getFecha()),
                 m.getTipo(),
@@ -173,26 +219,22 @@ public class MantenimientoController {
         }
     }
 
-    /**
-     * Traduce las excepciones SQL más comunes a mensajes que un usuario
-     * final entiende, en vez del texto crudo que devuelve MySQL/JDBC.
-     */
     private void manejarErrorSQL(SQLException e) {
         String mensaje;
         switch (e.getErrorCode()) {
-            case 1452: // Cannot add or update a child row: FK constraint fails
-                mensaje = "⚠️ El equipo indicado no existe. Verificá el ID de equipo ingresado.";
+            case 1452:
+                mensaje = "⚠️ El equipo indicado no existe. Verificá el equipo seleccionado.";
                 break;
-            case 1451: // Cannot delete or update a parent row: FK constraint fails
+            case 1451:
                 mensaje = "⚠️ No se puede eliminar: este registro tiene datos relacionados.";
                 break;
-            case 0: // Sin conexión / driver / timeout, no siempre trae código
+            case 0:
                 mensaje = "⚠️ No se pudo conectar a la base de datos. Verifique su conexión.";
                 break;
             default:
                 mensaje = "❌ Error de base de datos: " + e.getMessage();
         }
         vista.mostrarError(mensaje);
-        e.printStackTrace(); // el detalle técnico completo queda en consola para debug
+        e.printStackTrace();
     }
 }

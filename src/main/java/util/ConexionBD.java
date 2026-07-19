@@ -64,7 +64,11 @@ public class ConexionBD {
                         "  idEquipo INT AUTO_INCREMENT PRIMARY KEY," +
                         "  tipo VARCHAR(50) NOT NULL," +
                         "  marca VARCHAR(50)," +
-                        "  modelo VARCHAR(50)" +
+                        "  modelo VARCHAR(50)," +
+                        "  numeroSerie VARCHAR(100) UNIQUE," +
+                        "  fechaAdquisicion DATE," +
+                        "  estado VARCHAR(30)," +
+                        "  ubicacion VARCHAR(100)" +
                         ")";
 
         String sqlUsuario =

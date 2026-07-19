@@ -129,13 +129,13 @@ public class UsuarioController {
             for (Usuario u : usuarios) {
                 modelo.addRow(new Object[] //agrega una fila nueva a la tabla, con un valor por columna, en el mismo orden en que definas las columnas de tu VistaUsuario
                         {
-                        u.getIdUsuario(),
-                        u.getNombre(),
-                        u.getApellido(),
-                        u.getEmail(),
-                        u.getTelefono(),
-                        u.getIdEquipo()
-                });
+                                u.getIdUsuario(),
+                                u.getNombre(),
+                                u.getApellido(),
+                                u.getEmail(),
+                                u.getTelefono(),
+                                u.getIdEquipo()
+                        });
             }
 
             vista.getLblTotal().setText("Total: " + usuarios.size() + " usuarios");
@@ -152,6 +152,7 @@ public class UsuarioController {
             for (EquipoItem eq : equipos) {
                 vista.getCmbEquipo().addItem(eq);
             }
+            vista.getCmbEquipo().setSelectedIndex(-1);
         } catch (SQLException ex) {
             vista.mostrarError("No se pudieron cargar los equipos: " + ex.getMessage());
         }

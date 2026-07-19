@@ -12,6 +12,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.ArrayList;
 import modelo.EquipoItem;
+import modelo.UsuarioItem;
 
 public class UsuarioDAO {
 
@@ -118,6 +119,23 @@ public class UsuarioDAO {
         return lista;
     }
 
+    /**
+     * Versión liviana para poblar combos (ej. "Técnico" en el formulario de Mantenimiento).
+     */
+    public List<UsuarioItem> listarParaCombo() throws SQLException {
+        List<UsuarioItem> lista = new ArrayList<>();
+        String sql = "SELECT idUsuario, nombre, apellido FROM SCdeEdeC_Usuario ORDER BY nombre, apellido";
 
+        try (Connection con = ConexionBD.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String nombreCompleto = rs.getString("nombre") + " " + rs.getString("apellido");
+                lista.add(new UsuarioItem(rs.getInt("idUsuario"), nombreCompleto));
+            }
+        }
+        return lista;
+    }
 
 }
