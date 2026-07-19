@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+import static util.IconUtil.cargarIcono;
+
 public class VistaMantenimiento extends JFrame {
     private JTextField txtIdEquipo, txtDescripcion, txtTecnico, txtIdBuscar;
     private JComboBox<String> cmbTipo;
@@ -16,7 +18,7 @@ public class VistaMantenimiento extends JFrame {
     public VistaMantenimiento() {
         setTitle("📋 Sistema de Control de Equipos - Mantenimientos");
         setSize(1100, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         setLocationRelativeTo(null);
 
@@ -74,15 +76,15 @@ public class VistaMantenimiento extends JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         btnRegistrar = new JButton("💾 Registrar");
         btnRegistrar.setBackground(new Color(40, 167, 69));
-        btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setForeground(Color.BLACK);
 
-        btnLimpiar = new JButton("🧹 Limpiar");
+        btnLimpiar = new JButton("Limpiar", cargarIcono("/icons/broom.png", 13, 13));
         btnLimpiar.setBackground(new Color(108, 117, 125));
-        btnLimpiar.setForeground(Color.WHITE);
+        btnLimpiar.setForeground(Color.BLACK);
 
         btnBuscarEquipo = new JButton("🔍 Buscar por Equipo");
         btnBuscarEquipo.setBackground(new Color(0, 123, 255));
-        btnBuscarEquipo.setForeground(Color.WHITE);
+        btnBuscarEquipo.setForeground(Color.BLACK);
 
         panelBotones.add(btnRegistrar);
         panelBotones.add(btnLimpiar);
@@ -100,11 +102,11 @@ public class VistaMantenimiento extends JFrame {
         panelBusqueda.add(txtIdBuscar);
         btnConsultar = new JButton("📋 Ver Todos");
         btnConsultar.setBackground(new Color(23, 162, 184));
-        btnConsultar.setForeground(Color.WHITE);
+        btnConsultar.setForeground(Color.BLACK);
         panelBusqueda.add(btnConsultar);
         btnEliminar = new JButton("🗑️ Eliminar Seleccionado");
         btnEliminar.setBackground(new Color(220, 53, 69));
-        btnEliminar.setForeground(Color.WHITE);
+        btnEliminar.setForeground(Color.BLACK);
         panelBusqueda.add(btnEliminar);
 
         // Panel stats
@@ -133,7 +135,7 @@ public class VistaMantenimiento extends JFrame {
         tablaMantenimientos.setRowHeight(25);
         tablaMantenimientos.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tablaMantenimientos.getTableHeader().setBackground(new Color(52, 58, 64));
-        tablaMantenimientos.getTableHeader().setForeground(Color.WHITE);
+        tablaMantenimientos.getTableHeader().setForeground(Color.BLACK);
 
         JScrollPane scrollTabla = new JScrollPane(tablaMantenimientos);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("📋 Historial de Mantenimientos"));

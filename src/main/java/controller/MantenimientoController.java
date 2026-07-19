@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -62,21 +63,17 @@ public class MantenimientoController {
             m.setTecnico(tecnico);
             m.setObservaciones(observaciones);
 
-            if (service.registrar(m)) {
-                vista.mostrarExito("✅ Mantenimiento registrado exitosamente.");
-                vista.limpiarCampos();
-                cargarTodos();
-            } else {
-                vista.mostrarError("❌ Error al registrar el mantenimiento.");
-            }
+            service.registrar(m);
+            vista.mostrarExito("✅ Mantenimiento registrado exitosamente.");
+            vista.limpiarCampos();
+            cargarTodos();
 
         } catch (NumberFormatException e) {
             vista.mostrarError("❌ El ID del equipo debe ser un número válido.");
         } catch (IllegalArgumentException e) {
             vista.mostrarError("❌ " + e.getMessage());
-        } catch (Exception e) {
-            vista.mostrarError("❌ Error: " + e.getMessage());
-            e.printStackTrace();
+        } catch (SQLException e) {
+            manejarErrorSQL(e);
         }
     }
 
@@ -85,8 +82,8 @@ public class MantenimientoController {
             List<Mantenimiento> lista = service.obtenerTodos();
             mostrarEnTabla(lista);
             actualizarEstadisticas();
-        } catch (Exception e) {
-            vista.mostrarError("❌ Error al cargar: " + e.getMessage());
+        } catch (SQLException e) {
+            manejarErrorSQL(e);
         }
     }
 
@@ -103,18 +100,24 @@ public class MantenimientoController {
             vista.mostrarMensaje("🔍 Se encontraron " + lista.size() + " mantenimientos.");
         } catch (NumberFormatException e) {
             vista.mostrarError("ID inválido.");
+        } catch (SQLException e) {
+            manejarErrorSQL(e);
         }
     }
 
     private void buscarPorId(int id) {
-        Mantenimiento m = service.obtenerPorId(id);
-        if (m != null) {
-            DefaultTableModel model = vista.getModeloTabla();
-            model.setRowCount(0);
-            agregarFila(m);
-            vista.mostrarMensaje("✅ Mantenimiento encontrado.");
-        } else {
-            vista.mostrarError("❌ No encontrado.");
+        try {
+            Mantenimiento m = service.obtenerPorId(id);
+            if (m != null) {
+                DefaultTableModel model = vista.getModeloTabla();
+                model.setRowCount(0);
+                agregarFila(m);
+                vista.mostrarMensaje("✅ Mantenimiento encontrado.");
+            } else {
+                vista.mostrarError("❌ No encontrado.");
+            }
+        } catch (SQLException e) {
+            manejarErrorSQL(e);
         }
     }
 
@@ -131,11 +134,12 @@ public class MantenimientoController {
                 "Confirmar", JOptionPane.YES_NO_OPTION);
 
         if (confirmacion == JOptionPane.YES_OPTION) {
-            if (service.eliminar(id)) {
+            try {
+                service.eliminar(id);
                 vista.mostrarExito("✅ Eliminado.");
                 cargarTodos();
-            } else {
-                vista.mostrarError("❌ Error al eliminar.");
+            } catch (SQLException e) {
+                manejarErrorSQL(e);
             }
         }
     }
@@ -162,6 +166,33 @@ public class MantenimientoController {
     }
 
     private void actualizarEstadisticas() {
-        vista.getLblTotal().setText("📊 Total: " + service.contar() + " mantenimientos");
+        try {
+            vista.getLblTotal().setText("📊 Total: " + service.contar() + " mantenimientos");
+        } catch (SQLException e) {
+            manejarErrorSQL(e);
+        }
+    }
+
+    /**
+     * Traduce las excepciones SQL más comunes a mensajes que un usuario
+     * final entiende, en vez del texto crudo que devuelve MySQL/JDBC.
+     */
+    private void manejarErrorSQL(SQLException e) {
+        String mensaje;
+        switch (e.getErrorCode()) {
+            case 1452: // Cannot add or update a child row: FK constraint fails
+                mensaje = "⚠️ El equipo indicado no existe. Verificá el ID de equipo ingresado.";
+                break;
+            case 1451: // Cannot delete or update a parent row: FK constraint fails
+                mensaje = "⚠️ No se puede eliminar: este registro tiene datos relacionados.";
+                break;
+            case 0: // Sin conexión / driver / timeout, no siempre trae código
+                mensaje = "⚠️ No se pudo conectar a la base de datos. Verifique su conexión.";
+                break;
+            default:
+                mensaje = "❌ Error de base de datos: " + e.getMessage();
+        }
+        vista.mostrarError(mensaje);
+        e.printStackTrace(); // el detalle técnico completo queda en consola para debug
     }
 }

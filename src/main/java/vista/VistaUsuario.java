@@ -10,6 +10,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.IconUtil.cargarIcono;
+
 public class VistaUsuario extends JFrame {
     private JTextField txtNombre, txtApellido, txtEmail, txtTelefono;
     private JComboBox<EquipoItem> cmbEquipo;
@@ -21,7 +23,7 @@ public class VistaUsuario extends JFrame {
     public VistaUsuario() {
         setTitle("👤 Sistema de Control de Equipos - Usuarios");
         setSize(1000, 650);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         setLocationRelativeTo(null);
 
@@ -94,23 +96,24 @@ public class VistaUsuario extends JFrame {
 
         btnRegistrar = new JButton("💾 Registrar");
         btnRegistrar.setBackground(new Color(40, 167, 69));
-        btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setForeground(Color.BLACK);
 
         btnActualizar = new JButton("✏️ Actualizar");
         btnActualizar.setBackground(new Color(0, 123, 255));
-        btnActualizar.setForeground(Color.WHITE);
+        btnActualizar.setForeground(Color.BLACK);
 
         btnEliminar = new JButton("🗑️ Eliminar");
         btnEliminar.setBackground(new Color(220, 53, 69));
-        btnEliminar.setForeground(Color.WHITE);
+        btnEliminar.setForeground(Color.BLACK);
 
-        btnLimpiar = new JButton("🧹 Limpiar");
+
+        btnLimpiar = new JButton("Limpiar", cargarIcono("/icons/broom.png", 13, 13));
         btnLimpiar.setBackground(new Color(108, 117, 125));
-        btnLimpiar.setForeground(Color.WHITE);
+        btnLimpiar.setForeground(Color.BLACK);
 
         btnConsultar = new JButton("📋 Ver Todos");
         btnConsultar.setBackground(new Color(23, 162, 184));
-        btnConsultar.setForeground(Color.WHITE);
+        btnConsultar.setForeground(Color.BLACK);
 
         panelBotones.add(btnRegistrar);
         panelBotones.add(btnActualizar);
@@ -145,7 +148,7 @@ public class VistaUsuario extends JFrame {
         tablaUsuarios.setRowHeight(25);
         tablaUsuarios.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tablaUsuarios.getTableHeader().setBackground(new Color(52, 58, 64));
-        tablaUsuarios.getTableHeader().setForeground(Color.WHITE);
+        tablaUsuarios.getTableHeader().setForeground(Color.BLACK);
 
         JScrollPane scrollTabla = new JScrollPane(tablaUsuarios);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("📋 Usuarios Registrados"));

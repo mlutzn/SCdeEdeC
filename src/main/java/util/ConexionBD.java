@@ -3,6 +3,7 @@ package util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class ConexionBD {
     private static final String URL = "jdbc:mysql://195.35.59.3:3306/u484426513_disenocompc226?useSSL=false&serverTimezone=UTC";
@@ -47,6 +48,62 @@ public class ConexionBD {
             Connection conn = getConnection();
             return conn != null && !conn.isClosed();
         } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Crea las tablas del sistema si no existen todavía.
+     * Usa IF NOT EXISTS: si Usuario/Equipo ya están creadas, no las toca.
+     * Llamar una sola vez al arrancar la app (después de testConexion()).
+     */
+    public static boolean inicializarTablas() {
+        String sqlEquipo =
+                "CREATE TABLE IF NOT EXISTS SCdeEdeC_Equipo (" +
+                        "  idEquipo INT AUTO_INCREMENT PRIMARY KEY," +
+                        "  tipo VARCHAR(50) NOT NULL," +
+                        "  marca VARCHAR(50)," +
+                        "  modelo VARCHAR(50)" +
+                        ")";
+
+        String sqlUsuario =
+                "CREATE TABLE IF NOT EXISTS SCdeEdeC_Usuario (" +
+                        "  idUsuario INT AUTO_INCREMENT PRIMARY KEY," +
+                        "  nombre VARCHAR(100) NOT NULL," +
+                        "  apellido VARCHAR(100) NOT NULL," +
+                        "  email VARCHAR(150) NOT NULL," +
+                        "  telefono VARCHAR(30)," +
+                        "  idEquipo INT NULL," +
+                        "  CONSTRAINT fk_usuario_equipo FOREIGN KEY (idEquipo) REFERENCES SCdeEdeC_Equipo(idEquipo)" +
+                        ")";
+
+        String sqlMantenimiento =
+                "CREATE TABLE IF NOT EXISTS SCdeEdeC_Mantenimiento (" +
+                        "  idMantenimiento INT AUTO_INCREMENT PRIMARY KEY," +
+                        "  idEquipo INT NOT NULL," +
+                        "  descripcion VARCHAR(255) NOT NULL," +
+                        "  fecha DATE NOT NULL," +
+                        "  tipo VARCHAR(20) NOT NULL," +
+                        "  tecnico VARCHAR(100) NOT NULL," +
+                        "  observaciones TEXT," +
+                        "  fechaRegistro TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                        "  CONSTRAINT fk_mantenimiento_equipo FOREIGN KEY (idEquipo) REFERENCES SCdeEdeC_Equipo(idEquipo) ON DELETE CASCADE" +
+                        ")";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Orden importa: Equipo primero (referenciada por FK), después Usuario y Mantenimiento
+            stmt.execute(sqlEquipo);
+            stmt.execute(sqlUsuario);
+            stmt.execute(sqlMantenimiento);
+
+            System.out.println("✅ Tablas verificadas/creadas correctamente.");
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al crear tablas: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

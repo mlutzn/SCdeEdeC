@@ -1,8 +1,7 @@
 package org.example.scdeedec;
 
 import util.ConexionBD;
-import vista.VistaMantenimiento;
-import controller.MantenimientoController;
+import vista.VistaPrincipal;
 
 import javax.swing.*;
 
@@ -24,12 +23,18 @@ public class SCdeEdeCApplication {
                     return;
                 }
 
-                VistaMantenimiento vista = new VistaMantenimiento();
-                new MantenimientoController(vista);
+                if (!ConexionBD.inicializarTablas()) {
+                    JOptionPane.showMessageDialog(null,
+                            "❌ No se pudieron crear/verificar las tablas.",
+                            "Error de Inicialización",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                System.out.println("🚀 Sistema de Mantenimientos iniciado!");
+                new VistaPrincipal();
+
+                System.out.println("🚀 Sistema de Control de Equipos iniciado!");
                 System.out.println("📌 Base de datos: sistema_equipos");
-                System.out.println("📌 Tabla: SCdeEdeC_mantenimientos");
 
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null,
