@@ -1,57 +1,125 @@
 package service;
 
 import dao.EquipoDAO;
-import modelo.Equipo;
+import modelo.EquipoComputo;
+
 import java.sql.SQLException;
 import java.util.List;
 
 public class EquipoService {
 
-    private final EquipoDAO dao = new EquipoDAO();
+    private final EquipoDAO equipoDAO;
 
-    public void registrar(Equipo eq) throws SQLException {
-        validar(eq);
-        dao.registrar(eq);
+    public EquipoService() {
+        this.equipoDAO = new EquipoDAO();
     }
 
-    public void actualizar(Equipo eq) throws SQLException {
-        validar(eq);
-        dao.actualizar(eq);
+    public void registrar(EquipoComputo equipo) throws SQLException {
+        validarEquipo(equipo);
+        limpiarDatos(equipo);
+        equipoDAO.registrar(equipo);
     }
 
-    public void eliminar(int id) throws SQLException {
-        dao.eliminar(id);
-    }
+    public void actualizar(EquipoComputo equipo) throws SQLException {
 
-    public List<Equipo> obtenerTodos() throws SQLException {
-        return dao.listarTodos();
-    }
-
-    public Equipo obtenerPorId(int id) throws SQLException {
-        return dao.obtenerPorId(id);
-    }
-
-    public int contar() throws SQLException {
-        return dao.contar();
-    }
-
-    // Reglas de negocio: qué es un equipo "válido" antes de tocar la BD.
-    // fechaAdquisicion y ubicacion quedan opcionales (a veces no se sabe al momento del alta).
-    private void validar(Equipo eq) {
-        if (eq.getTipo() == null || eq.getTipo().trim().isEmpty()) {
-            throw new IllegalArgumentException("El tipo de equipo es obligatorio.");
+        if (equipo.getIdEquipo() <= 0) {
+            throw new IllegalArgumentException(
+                    "El equipo seleccionado no es válido."
+            );
         }
-        if (eq.getMarca() == null || eq.getMarca().trim().isEmpty()) {
-            throw new IllegalArgumentException("La marca es obligatoria.");
+
+        validarEquipo(equipo);
+        limpiarDatos(equipo);
+        equipoDAO.actualizar(equipo);
+    }
+
+    public void eliminar(int idEquipo) throws SQLException {
+
+        if (idEquipo <= 0) {
+            throw new IllegalArgumentException(
+                    "El identificador del equipo no es válido."
+            );
         }
-        if (eq.getModelo() == null || eq.getModelo().trim().isEmpty()) {
-            throw new IllegalArgumentException("El modelo es obligatorio.");
+
+        equipoDAO.eliminar(idEquipo);
+    }
+
+    public List<EquipoComputo> obtenerTodos() throws SQLException {
+        return equipoDAO.listarTodos();
+    }
+
+    public EquipoComputo obtenerPorId(int idEquipo) throws SQLException {
+
+        if (idEquipo <= 0) {
+            throw new IllegalArgumentException(
+                    "El identificador del equipo no es válido."
+            );
         }
-        if (eq.getNumeroSerie() == null || eq.getNumeroSerie().trim().isEmpty()) {
-            throw new IllegalArgumentException("El número de serie es obligatorio.");
+
+        return equipoDAO.obtenerPorId(idEquipo);
+    }
+
+    public List<EquipoComputo> buscar(String criterio) throws SQLException {
+
+        if (criterio == null || criterio.trim().isEmpty()) {
+            return equipoDAO.listarTodos();
         }
-        if (eq.getEstado() == null || eq.getEstado().trim().isEmpty()) {
-            throw new IllegalArgumentException("El estado es obligatorio.");
+
+        return equipoDAO.buscar(criterio);
+    }
+
+    private void validarEquipo(EquipoComputo equipo) {
+
+        if (equipo == null) {
+            throw new IllegalArgumentException(
+                    "Los datos del equipo son obligatorios."
+            );
+        }
+
+        if (estaVacio(equipo.getTipo())) {
+            throw new IllegalArgumentException(
+                    "El tipo de equipo es obligatorio."
+            );
+        }
+
+        if (estaVacio(equipo.getMarca())) {
+            throw new IllegalArgumentException(
+                    "La marca es obligatoria."
+            );
+        }
+
+        if (estaVacio(equipo.getModelo())) {
+            throw new IllegalArgumentException(
+                    "El modelo es obligatorio."
+            );
+        }
+
+        if (estaVacio(equipo.getNumeroSerie())) {
+            throw new IllegalArgumentException(
+                    "El número de serie es obligatorio."
+            );
+        }
+
+        if (estaVacio(equipo.getEstado())) {
+            throw new IllegalArgumentException(
+                    "El estado del equipo es obligatorio."
+            );
+        }
+    }
+
+    private boolean estaVacio(String texto) {
+        return texto == null || texto.trim().isEmpty();
+    }
+
+    private void limpiarDatos(EquipoComputo equipo) {
+        equipo.setTipo(equipo.getTipo().trim());
+        equipo.setMarca(equipo.getMarca().trim());
+        equipo.setModelo(equipo.getModelo().trim());
+        equipo.setNumeroSerie(equipo.getNumeroSerie().trim());
+        equipo.setEstado(equipo.getEstado().trim());
+
+        if (equipo.getUbicacion() != null) {
+            equipo.setUbicacion(equipo.getUbicacion().trim());
         }
     }
 }

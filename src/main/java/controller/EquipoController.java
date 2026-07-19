@@ -1,10 +1,10 @@
 package controller;
 
-import modelo.Equipo;
+import modelo.EquipoComputo;
 import service.EquipoService;
 import vista.VistaEquipo;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -16,175 +16,358 @@ public class EquipoController {
 
     private final VistaEquipo vista;
     private final EquipoService service;
-    private final SimpleDateFormat sdf;
+    private final SimpleDateFormat formatoFecha;
 
     public EquipoController(VistaEquipo vista) {
         this.vista = vista;
         this.service = new EquipoService();
-        this.sdf = new SimpleDateFormat("dd/MM/yyyy");
-        this.sdf.setLenient(false);
+
+        this.formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        this.formatoFecha.setLenient(false);
 
         iniciarEventos();
         cargarTodos();
     }
 
     private void iniciarEventos() {
-        vista.getBtnRegistrar().addActionListener(e -> registrar());
-        vista.getBtnActualizar().addActionListener(e -> actualizar());
-        vista.getBtnEliminar().addActionListener(e -> eliminar());
-        vista.getBtnLimpiar().addActionListener(e -> vista.limpiarCampos());
-        vista.getBtnConsultar().addActionListener(e -> cargarTodos());
 
-        vista.getTablaEquipos().getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                cargarFilaSeleccionada();
-            }
-        });
+        vista.getBtnRegistrar().addActionListener(
+                e -> registrar()
+        );
+
+        vista.getBtnActualizar().addActionListener(
+                e -> actualizar()
+        );
+
+        vista.getBtnEliminar().addActionListener(
+                e -> eliminar()
+        );
+
+        vista.getBtnLimpiar().addActionListener(
+                e -> vista.limpiarCampos()
+        );
+
+        vista.getBtnConsultar().addActionListener(
+                e -> cargarTodos()
+        );
+
+        vista.getBtnBuscar().addActionListener(
+                e -> buscar()
+        );
+
+        vista.getTxtBuscar().addActionListener(
+                e -> buscar()
+        );
+
+        vista.getTablaEquipos()
+                .getSelectionModel()
+                .addListSelectionListener(e -> {
+
+                    if (!e.getValueIsAdjusting()) {
+                        cargarFilaSeleccionada();
+                    }
+                });
     }
 
     private void registrar() {
+
         try {
-            Equipo eq = leerFormulario();
-            service.registrar(eq);
-            vista.mostrarExito("✅ Equipo registrado correctamente.");
+            EquipoComputo equipo = leerFormulario();
+
+            service.registrar(equipo);
+
+            vista.mostrarExito(
+                    "Equipo registrado correctamente."
+            );
+
             vista.limpiarCampos();
             cargarTodos();
-        } catch (IllegalArgumentException ex) {
-            vista.mostrarError("❌ " + ex.getMessage());
-        } catch (SQLException ex) {
-            manejarErrorSQL(ex);
+
+        } catch (IllegalArgumentException error) {
+
+            vista.mostrarError(error.getMessage());
+
+        } catch (SQLException error) {
+
+            manejarErrorSQL(error);
         }
     }
 
     private void actualizar() {
-        int fila = vista.getTablaEquipos().getSelectedRow();
-        if (fila == -1) {
-            vista.mostrarError("Seleccione un equipo de la tabla para actualizar.");
+
+        int filaSeleccionada =
+                vista.getTablaEquipos().getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            vista.mostrarError(
+                    "Seleccione un equipo de la tabla para actualizar."
+            );
             return;
         }
 
         try {
-            int idEquipo = (int) vista.getTablaEquipos().getValueAt(fila, 0);
-            Equipo eq = leerFormulario();
-            eq.setIdEquipo(idEquipo);
+            int idEquipo = (int) vista
+                    .getTablaEquipos()
+                    .getValueAt(filaSeleccionada, 0);
 
-            service.actualizar(eq);
-            vista.mostrarExito("✅ Equipo actualizado correctamente.");
+            EquipoComputo equipo = leerFormulario();
+            equipo.setIdEquipo(idEquipo);
+
+            service.actualizar(equipo);
+
+            vista.mostrarExito(
+                    "Equipo actualizado correctamente."
+            );
+
             vista.limpiarCampos();
             cargarTodos();
-        } catch (IllegalArgumentException ex) {
-            vista.mostrarError("❌ " + ex.getMessage());
-        } catch (SQLException ex) {
-            manejarErrorSQL(ex);
+
+        } catch (IllegalArgumentException error) {
+
+            vista.mostrarError(error.getMessage());
+
+        } catch (SQLException error) {
+
+            manejarErrorSQL(error);
         }
     }
 
     private void eliminar() {
-        int fila = vista.getTablaEquipos().getSelectedRow();
-        if (fila == -1) {
-            vista.mostrarError("Seleccione un equipo de la tabla para eliminar.");
+
+        int filaSeleccionada =
+                vista.getTablaEquipos().getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            vista.mostrarError(
+                    "Seleccione un equipo de la tabla para eliminar."
+            );
             return;
         }
 
-        int idEquipo = (int) vista.getTablaEquipos().getValueAt(fila, 0);
-        int confirmacion = JOptionPane.showConfirmDialog(vista,
-                "¿Eliminar equipo ID: " + idEquipo + "?",
-                "Confirmar", JOptionPane.YES_NO_OPTION);
+        int idEquipo = (int) vista
+                .getTablaEquipos()
+                .getValueAt(filaSeleccionada, 0);
 
-        if (confirmacion == JOptionPane.YES_OPTION) {
-            try {
-                service.eliminar(idEquipo);
-                vista.mostrarExito("✅ Equipo eliminado correctamente.");
-                vista.limpiarCampos();
-                cargarTodos();
-            } catch (SQLException ex) {
-                manejarErrorSQL(ex);
-            }
+        int respuesta = JOptionPane.showConfirmDialog(
+                vista,
+                "¿Desea eliminar el equipo seleccionado?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (respuesta != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            service.eliminar(idEquipo);
+
+            vista.mostrarExito(
+                    "Equipo eliminado correctamente."
+            );
+
+            vista.limpiarCampos();
+            cargarTodos();
+
+        } catch (IllegalArgumentException error) {
+
+            vista.mostrarError(error.getMessage());
+
+        } catch (SQLException error) {
+
+            manejarErrorSQL(error);
         }
     }
 
     private void cargarTodos() {
-        try {
-            List<Equipo> equipos = service.obtenerTodos();
-            DefaultTableModel modelo = vista.getModeloTabla();
-            modelo.setRowCount(0);
 
-            for (Equipo eq : equipos) {
-                modelo.addRow(new Object[]{
-                        eq.getIdEquipo(),
-                        eq.getTipo(),
-                        eq.getMarca(),
-                        eq.getModelo(),
-                        eq.getNumeroSerie(),
-                        eq.getFechaAdquisicion() != null ? sdf.format(eq.getFechaAdquisicion()) : "",
-                        eq.getEstado(),
-                        eq.getUbicacion()
-                });
+        try {
+            List<EquipoComputo> equipos =
+                    service.obtenerTodos();
+
+            mostrarEquipos(equipos);
+
+        } catch (SQLException error) {
+
+            manejarErrorSQL(error);
+        }
+    }
+
+    private void buscar() {
+
+        try {
+            String criterio =
+                    vista.getTxtBuscar().getText();
+
+            List<EquipoComputo> equipos =
+                    service.buscar(criterio);
+
+            mostrarEquipos(equipos);
+
+        } catch (SQLException error) {
+
+            manejarErrorSQL(error);
+        }
+    }
+
+    private void mostrarEquipos(
+            List<EquipoComputo> equipos
+    ) {
+        DefaultTableModel modeloTabla =
+                vista.getModeloTabla();
+
+        modeloTabla.setRowCount(0);
+
+        for (EquipoComputo equipo : equipos) {
+
+            String fecha = "";
+
+            if (equipo.getFechaAdquisicion() != null) {
+                fecha = formatoFecha.format(
+                        equipo.getFechaAdquisicion()
+                );
             }
 
-            vista.getLblTotal().setText("Total: " + equipos.size() + " equipos");
-        } catch (SQLException ex) {
-            manejarErrorSQL(ex);
+            modeloTabla.addRow(new Object[]{
+                    equipo.getIdEquipo(),
+                    equipo.getTipo(),
+                    equipo.getMarca(),
+                    equipo.getModelo(),
+                    equipo.getNumeroSerie(),
+                    fecha,
+                    equipo.getEstado(),
+                    equipo.getUbicacion()
+            });
         }
+
+        vista.getLblTotal().setText(
+                "Total: " + equipos.size() + " equipos"
+        );
     }
 
     private void cargarFilaSeleccionada() {
-        int fila = vista.getTablaEquipos().getSelectedRow();
-        if (fila == -1) return;
 
-        vista.getTxtTipo().setText((String) vista.getTablaEquipos().getValueAt(fila, 1));
-        vista.getTxtMarca().setText((String) vista.getTablaEquipos().getValueAt(fila, 2));
-        vista.getTxtModelo().setText((String) vista.getTablaEquipos().getValueAt(fila, 3));
-        vista.getTxtNumeroSerie().setText((String) vista.getTablaEquipos().getValueAt(fila, 4));
-        vista.getTxtFechaAdquisicion().setText((String) vista.getTablaEquipos().getValueAt(fila, 5));
-        vista.getTxtUbicacion().setText((String) vista.getTablaEquipos().getValueAt(fila, 7));
+        int filaSeleccionada =
+                vista.getTablaEquipos().getSelectedRow();
 
-        String estado = (String) vista.getTablaEquipos().getValueAt(fila, 6);
-        vista.getCmbEstado().setSelectedItem(estado);
+        if (filaSeleccionada == -1) {
+            return;
+        }
+
+        vista.getTxtTipo().setText(
+                obtenerTextoTabla(filaSeleccionada, 1)
+        );
+
+        vista.getTxtMarca().setText(
+                obtenerTextoTabla(filaSeleccionada, 2)
+        );
+
+        vista.getTxtModelo().setText(
+                obtenerTextoTabla(filaSeleccionada, 3)
+        );
+
+        vista.getTxtNumeroSerie().setText(
+                obtenerTextoTabla(filaSeleccionada, 4)
+        );
+
+        vista.getTxtFechaAdquisicion().setText(
+                obtenerTextoTabla(filaSeleccionada, 5)
+        );
+
+        vista.getCmbEstado().setSelectedItem(
+                obtenerTextoTabla(filaSeleccionada, 6)
+        );
+
+        vista.getTxtUbicacion().setText(
+                obtenerTextoTabla(filaSeleccionada, 7)
+        );
     }
 
-    private Equipo leerFormulario() {
-        String tipo = vista.getTxtTipo().getText().trim();
-        String marca = vista.getTxtMarca().getText().trim();
-        String modelo = vista.getTxtModelo().getText().trim();
-        String numeroSerie = vista.getTxtNumeroSerie().getText().trim();
-        String estado = (String) vista.getCmbEstado().getSelectedItem();
-        String ubicacion = vista.getTxtUbicacion().getText().trim();
-        String fechaTexto = vista.getTxtFechaAdquisicion().getText().trim();
+    private String obtenerTextoTabla(
+            int fila,
+            int columna
+    ) {
+        Object valor = vista
+                .getTablaEquipos()
+                .getValueAt(fila, columna);
 
-        Date fecha = null;
+        return valor == null ? "" : valor.toString();
+    }
+
+    private EquipoComputo leerFormulario() {
+
+        String tipo =
+                vista.getTxtTipo().getText();
+
+        String marca =
+                vista.getTxtMarca().getText();
+
+        String modelo =
+                vista.getTxtModelo().getText();
+
+        String numeroSerie =
+                vista.getTxtNumeroSerie().getText();
+
+        String estado =
+                (String) vista.getCmbEstado().getSelectedItem();
+
+        String ubicacion =
+                vista.getTxtUbicacion().getText();
+
+        String fechaTexto =
+                vista.getTxtFechaAdquisicion()
+                        .getText()
+                        .trim();
+
+        Date fechaAdquisicion = null;
+
         if (!fechaTexto.isEmpty()) {
             try {
-                fecha = sdf.parse(fechaTexto);
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("La fecha de adquisición debe tener formato dd/MM/yyyy.");
+                fechaAdquisicion =
+                        formatoFecha.parse(fechaTexto);
+
+            } catch (ParseException error) {
+
+                throw new IllegalArgumentException(
+                        "La fecha debe tener el formato dd/MM/yyyy."
+                );
             }
         }
 
-        return new Equipo(tipo, marca, modelo, numeroSerie, fecha, estado, ubicacion);
+        return new EquipoComputo(
+                tipo,
+                marca,
+                modelo,
+                numeroSerie,
+                fechaAdquisicion,
+                estado,
+                ubicacion
+        );
     }
 
-    /**
-     * Traduce las excepciones SQL más comunes a mensajes legibles.
-     * 1451: intentaste borrar un equipo que tiene Usuarios o Mantenimientos asociados.
-     * 1062: violación de UNIQUE (por ejemplo numeroSerie repetido, si le pusiste esa restricción).
-     */
-    private void manejarErrorSQL(SQLException e) {
+    private void manejarErrorSQL(SQLException error) {
+
         String mensaje;
-        switch (e.getErrorCode()) {
-            case 1451:
-                mensaje = "⚠️ No se puede eliminar: hay usuarios o mantenimientos asociados a este equipo.";
-                break;
+
+        switch (error.getErrorCode()) {
+
             case 1062:
-                mensaje = "⚠️ Ya existe un equipo con ese número de serie.";
+                mensaje =
+                        "Ya existe un equipo con ese número de serie.";
                 break;
-            case 0:
-                mensaje = "⚠️ No se pudo conectar a la base de datos. Verifique su conexión.";
+
+            case 1451:
+                mensaje =
+                        "No se puede eliminar el equipo porque tiene usuarios o mantenimientos asociados.";
                 break;
+
             default:
-                mensaje = "❌ Error de base de datos: " + e.getMessage();
+                mensaje =
+                        "Error de base de datos: " +
+                                error.getMessage();
         }
+
         vista.mostrarError(mensaje);
-        e.printStackTrace();
+        error.printStackTrace();
     }
 }
