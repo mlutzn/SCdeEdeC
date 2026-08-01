@@ -1,6 +1,6 @@
 package org.example.scdeedec;
 
-import modelo.EquipoComputo;
+import org.example.scdeedec.componentes.equipos.modelo.EquipoComputo;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

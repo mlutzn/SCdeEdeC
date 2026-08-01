@@ -1,8 +1,11 @@
 package vista;
 
-import controller.EquipoController;
-import controller.UsuarioController;
-import controller.MantenimientoController;
+import org.example.scdeedec.componentes.equipos.controller.EquipoController;
+import org.example.scdeedec.componentes.equipos.vista.VistaEquipo;
+import org.example.scdeedec.componentes.mantenimientos.vista.VistaMantenimiento;
+import org.example.scdeedec.componentes.usuarios.controller.UsuarioController;
+import org.example.scdeedec.componentes.mantenimientos.controller.MantenimientoController;
+import org.example.scdeedec.componentes.usuarios.vista.VistaUsuario;
 
 import javax.swing.*;
 import java.awt.*;
