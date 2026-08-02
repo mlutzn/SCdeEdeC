@@ -2,16 +2,20 @@ package org.example.scdeedec;
 
 import util.ConexionBD;
 import vista.VistaPrincipal;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 
 public class SCdeEdeCApplication {
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        FlatLightLaf.setup();
+        UIManager.put("Button.arc", 12);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("Component.focusWidth", 1);
+        UIManager.put("Table.rowHeight", 30);
+        UIManager.put("ScrollBar.width", 12);
 
         SwingUtilities.invokeLater(() -> {
             try {

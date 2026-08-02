@@ -1,26 +1,31 @@
 package equipos.vista;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import javax.swing.table.TableColumnModel;
+import java.awt.*;
 
 public class VistaEquipo extends JFrame {
+
+    private static final Color FONDO =
+            new Color(244, 247, 251);
+
+    private static final Color TARJETA =
+            Color.WHITE;
+
+    private static final Color TEXTO =
+            new Color(30, 41, 59);
+
+    private static final Color TEXTO_SECUNDARIO =
+            new Color(100, 116, 139);
+
+    private static final Color BORDE =
+            new Color(226, 232, 240);
+
+    private static final Color PRIMARIO =
+            new Color(37, 99, 235);
 
     private JTextField txtTipo;
     private JTextField txtMarca;
@@ -46,255 +51,477 @@ public class VistaEquipo extends JFrame {
     public VistaEquipo() {
 
         setTitle("Gestión de Equipos de Cómputo");
-        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        setMinimumSize(
+                new Dimension(1050, 680)
+        );
+
+        setSize(1200, 760);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        setResizable(true);
 
-        JPanel panelPrincipal =
-                new JPanel(new BorderLayout(10, 10));
+        JPanel principal = new JPanel(
+                new BorderLayout(0, 20)
+        );
 
-        panelPrincipal.setBorder(
+        principal.setBackground(FONDO);
+
+        principal.setBorder(
                 BorderFactory.createEmptyBorder(
-                        10, 10, 10, 10
+                        24, 28, 28, 28
                 )
         );
 
-        panelPrincipal.add(
+        principal.add(
+                crearEncabezado(),
+                BorderLayout.NORTH
+        );
+
+        JPanel contenido = new JPanel(
+                new BorderLayout(0, 20)
+        );
+
+        contenido.setOpaque(false);
+
+        contenido.add(
                 crearFormulario(),
                 BorderLayout.NORTH
         );
 
-        panelPrincipal.add(
+        contenido.add(
                 crearPanelTabla(),
                 BorderLayout.CENTER
         );
 
-        add(panelPrincipal);
+        principal.add(contenido, BorderLayout.CENTER);
 
+        setContentPane(principal);
         setVisible(true);
+    }
+
+    private JPanel crearEncabezado() {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+
+        panel.setLayout(
+                new BoxLayout(panel, BoxLayout.Y_AXIS)
+        );
+
+        JLabel titulo = new JLabel(
+                "Gestión de equipos"
+        );
+
+        titulo.setFont(
+                new Font("SansSerif", Font.BOLD, 27)
+        );
+
+        titulo.setForeground(TEXTO);
+
+        JLabel subtitulo = new JLabel(
+                "Registre, consulte y actualice los equipos de cómputo"
+        );
+
+        subtitulo.setFont(
+                new Font("SansSerif", Font.PLAIN, 14)
+        );
+
+        subtitulo.setForeground(TEXTO_SECUNDARIO);
+
+        panel.add(titulo);
+        panel.add(Box.createVerticalStrut(4));
+        panel.add(subtitulo);
+
+        return panel;
     }
 
     private JPanel crearFormulario() {
 
-        JPanel panelFormulario =
-                new JPanel(new GridBagLayout());
-
-        panelFormulario.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Registrar o editar equipo"
-                )
+        JPanel tarjeta = crearTarjeta(
+                new BorderLayout(0, 16)
         );
+
+        JLabel titulo = new JLabel(
+                "Información del equipo"
+        );
+
+        titulo.setFont(
+                new Font("SansSerif", Font.BOLD, 18)
+        );
+
+        titulo.setForeground(TEXTO);
+
+        JPanel campos = new JPanel(
+                new GridBagLayout()
+        );
+
+        campos.setOpaque(false);
 
         GridBagConstraints posicion =
                 new GridBagConstraints();
 
-        posicion.insets = new Insets(5, 5, 5, 5);
-        posicion.fill = GridBagConstraints.HORIZONTAL;
+        txtTipo = crearCampo(
+                "Ejemplo: Laptop, Desktop o Servidor"
+        );
 
-        txtTipo = new JTextField(20);
-        txtMarca = new JTextField(20);
-        txtModelo = new JTextField(20);
-        txtNumeroSerie = new JTextField(20);
-        txtFechaAdquisicion = new JTextField(20);
-        txtUbicacion = new JTextField(20);
+        txtMarca = crearCampo(
+                "Marca del fabricante"
+        );
 
-        cmbEstado = new JComboBox<>(new String[]{
-                "Activo",
-                "En mantenimiento",
-                "Fuera de servicio",
-                "Baja"
-        });
+        txtModelo = crearCampo(
+                "Modelo del equipo"
+        );
+
+        txtNumeroSerie = crearCampo(
+                "Número de serie único"
+        );
+
+        txtFechaAdquisicion = crearCampo(
+                "dd/MM/yyyy"
+        );
+
+        txtUbicacion = crearCampo(
+                "Ejemplo: Oficina, Laboratorio o Bodega"
+        );
+
+        cmbEstado = new JComboBox<>(
+                new String[]{
+                        "Activo",
+                        "En mantenimiento",
+                        "Fuera de servicio",
+                        "Baja"
+                }
+        );
+
+        cmbEstado.setPreferredSize(
+                new Dimension(250, 36)
+        );
 
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
                 0,
-                "Tipo:",
+                0,
+                "Tipo",
                 txtTipo
         );
 
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
-                1,
-                "Marca:",
+                2,
+                0,
+                "Marca",
                 txtMarca
         );
 
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
-                2,
-                "Modelo:",
+                0,
+                1,
+                "Modelo",
                 txtModelo
         );
 
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
-                3,
-                "Número de serie:",
+                2,
+                1,
+                "Número de serie",
                 txtNumeroSerie
         );
 
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
-                4,
-                "Fecha de adquisición (dd/MM/yyyy):",
+                0,
+                2,
+                "Fecha de adquisición",
                 txtFechaAdquisicion
         );
 
-        posicion.gridx = 0;
-        posicion.gridy = 5;
-        posicion.weightx = 0.2;
-
-        panelFormulario.add(
-                new JLabel("Estado:"),
-                posicion
-        );
-
-        posicion.gridx = 1;
-        posicion.weightx = 0.8;
-
-        panelFormulario.add(
-                cmbEstado,
-                posicion
-        );
-
         agregarCampo(
-                panelFormulario,
+                campos,
                 posicion,
-                6,
-                "Ubicación:",
+                2,
+                2,
+                "Estado",
+                cmbEstado
+        );
+
+        agregarCampoAncho(
+                campos,
+                posicion,
+                3,
+                "Ubicación",
                 txtUbicacion
         );
 
-        JPanel panelBotones =
-                crearPanelBotones();
+        tarjeta.add(titulo, BorderLayout.NORTH);
+        tarjeta.add(campos, BorderLayout.CENTER);
 
-        posicion.gridx = 0;
-        posicion.gridy = 7;
-        posicion.gridwidth = 2;
-        posicion.weightx = 1;
-
-        panelFormulario.add(
-                panelBotones,
-                posicion
+        tarjeta.add(
+                crearPanelBotones(),
+                BorderLayout.SOUTH
         );
 
-        return panelFormulario;
+        return tarjeta;
+    }
+
+    private JTextField crearCampo(
+            String textoAyuda
+    ) {
+
+        JTextField campo = new JTextField();
+
+        campo.setPreferredSize(
+                new Dimension(250, 36)
+        );
+
+        campo.putClientProperty(
+                "JTextField.placeholderText",
+                textoAyuda
+        );
+
+        return campo;
     }
 
     private void agregarCampo(
             JPanel panel,
             GridBagConstraints posicion,
+            int columna,
             int fila,
             String texto,
-            JTextField campo
+            JComponent componente
     ) {
-        posicion.gridwidth = 1;
-        posicion.gridx = 0;
-        posicion.gridy = fila;
-        posicion.weightx = 0.2;
 
-        panel.add(
-                new JLabel(texto),
-                posicion
+        posicion.gridy = fila;
+        posicion.gridwidth = 1;
+        posicion.weighty = 0;
+        posicion.anchor = GridBagConstraints.WEST;
+
+        posicion.gridx = columna;
+        posicion.weightx = 0;
+        posicion.fill = GridBagConstraints.NONE;
+
+        posicion.insets =
+                columna == 0
+                        ? new Insets(7, 0, 7, 10)
+                        : new Insets(7, 28, 7, 10);
+
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setFont(
+                new Font("SansSerif", Font.BOLD, 13)
         );
+        etiqueta.setForeground(TEXTO);
+
+        panel.add(etiqueta, posicion);
+
+        posicion.gridx = columna + 1;
+        posicion.weightx = 1;
+        posicion.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        posicion.insets =
+                new Insets(7, 0, 7, 0);
+
+        panel.add(componente, posicion);
+    }
+
+    private void agregarCampoAncho(
+            JPanel panel,
+            GridBagConstraints posicion,
+            int fila,
+            String texto,
+            JComponent componente
+    ) {
+
+        posicion.gridy = fila;
+        posicion.gridx = 0;
+        posicion.gridwidth = 1;
+        posicion.weightx = 0;
+        posicion.fill = GridBagConstraints.NONE;
+
+        posicion.insets =
+                new Insets(7, 0, 7, 10);
+
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setFont(
+                new Font("SansSerif", Font.BOLD, 13)
+        );
+        etiqueta.setForeground(TEXTO);
+
+        panel.add(etiqueta, posicion);
 
         posicion.gridx = 1;
-        posicion.weightx = 0.8;
+        posicion.gridwidth = 3;
+        posicion.weightx = 1;
+        posicion.fill =
+                GridBagConstraints.HORIZONTAL;
 
-        panel.add(
-                campo,
-                posicion
-        );
+        posicion.insets =
+                new Insets(7, 0, 7, 0);
+
+        panel.add(componente, posicion);
+
+        posicion.gridwidth = 1;
     }
 
     private JPanel crearPanelBotones() {
 
-        JPanel panelBotones =
-                new JPanel(new FlowLayout());
-
-        btnRegistrar =
-                new JButton("Registrar");
-
-        btnActualizar =
-                new JButton("Actualizar");
-
-        btnEliminar =
-                new JButton("Eliminar");
-
-        btnLimpiar =
-                new JButton("Limpiar");
-
-        btnConsultar =
-                new JButton("Ver todos");
-
-        btnRegistrar.setBackground(
-                new Color(40, 167, 69)
+        JPanel panel = new JPanel(
+                new FlowLayout(
+                        FlowLayout.LEFT,
+                        10,
+                        0
+                )
         );
 
-        btnActualizar.setBackground(
-                new Color(0, 123, 255)
+        panel.setOpaque(false);
+
+        btnRegistrar = crearBoton(
+                "Registrar",
+                new Color(22, 163, 74)
         );
 
-        btnEliminar.setBackground(
-                new Color(220, 53, 69)
+        btnActualizar = crearBoton(
+                "Actualizar",
+                PRIMARIO
         );
 
-        btnLimpiar.setBackground(
-                new Color(108, 117, 125)
+        btnEliminar = crearBoton(
+                "Eliminar",
+                new Color(220, 38, 38)
         );
 
-        btnConsultar.setBackground(
-                new Color(23, 162, 184)
+        btnLimpiar = crearBoton(
+                "Limpiar",
+                new Color(100, 116, 139)
         );
 
-        panelBotones.add(btnRegistrar);
-        panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
-        panelBotones.add(btnLimpiar);
-        panelBotones.add(btnConsultar);
+        btnConsultar = crearBoton(
+                "Ver todos",
+                new Color(8, 145, 178)
+        );
 
-        return panelBotones;
+        panel.add(btnRegistrar);
+        panel.add(btnActualizar);
+        panel.add(btnEliminar);
+        panel.add(btnLimpiar);
+        panel.add(btnConsultar);
+
+        return panel;
+    }
+
+    private JButton crearBoton(
+            String texto,
+            Color color
+    ) {
+
+        JButton boton = new JButton(texto);
+
+        boton.setBackground(color);
+        boton.setForeground(Color.WHITE);
+        boton.setFocusPainted(false);
+        boton.setBorderPainted(false);
+
+        boton.setPreferredSize(
+                new Dimension(115, 38)
+        );
+
+        boton.setCursor(
+                Cursor.getPredefinedCursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        boton.putClientProperty(
+                "JButton.buttonType",
+                "roundRect"
+        );
+
+        return boton;
     }
 
     private JPanel crearPanelTabla() {
 
-        JPanel panelInferior =
-                new JPanel(new BorderLayout(5, 5));
+        JPanel tarjeta = crearTarjeta(
+                new BorderLayout(0, 15)
+        );
 
-        JPanel panelBusqueda =
-                new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel cabecera = new JPanel(
+                new BorderLayout()
+        );
 
-        panelBusqueda.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Consultar equipos"
+        cabecera.setOpaque(false);
+
+        JPanel informacion = new JPanel();
+        informacion.setOpaque(false);
+
+        informacion.setLayout(
+                new BoxLayout(
+                        informacion,
+                        BoxLayout.Y_AXIS
                 )
         );
 
-        lblTotal = new JLabel("Total: 0 equipos");
-        lblTotal.setFont(
-                new Font("Arial", Font.BOLD, 14)
+        JLabel titulo = new JLabel(
+                "Equipos registrados"
         );
 
-        txtBuscar = new JTextField(25);
-        txtBuscar.setToolTipText(
+        titulo.setFont(
+                new Font("SansSerif", Font.BOLD, 18)
+        );
+
+        titulo.setForeground(TEXTO);
+
+        lblTotal = new JLabel("Total: 0 equipos");
+
+        lblTotal.setFont(
+                new Font("SansSerif", Font.PLAIN, 13)
+        );
+
+        lblTotal.setForeground(TEXTO_SECUNDARIO);
+
+        informacion.add(titulo);
+        informacion.add(Box.createVerticalStrut(3));
+        informacion.add(lblTotal);
+
+        JPanel busqueda = new JPanel(
+                new FlowLayout(
+                        FlowLayout.RIGHT,
+                        8,
+                        0
+                )
+        );
+
+        busqueda.setOpaque(false);
+
+        txtBuscar = crearCampo(
                 "Marca, modelo, serie, estado o ubicación"
         );
 
-        btnBuscar = new JButton("Buscar");
-
-        panelBusqueda.add(lblTotal);
-        panelBusqueda.add(
-                Box.createHorizontalStrut(20)
+        txtBuscar.setPreferredSize(
+                new Dimension(310, 36)
         );
-        panelBusqueda.add(new JLabel("Buscar:"));
-        panelBusqueda.add(txtBuscar);
-        panelBusqueda.add(btnBuscar);
+
+        btnBuscar = crearBoton(
+                "Buscar",
+                PRIMARIO
+        );
+
+        btnBuscar.setPreferredSize(
+                new Dimension(95, 36)
+        );
+
+        busqueda.add(txtBuscar);
+        busqueda.add(btnBuscar);
+
+        cabecera.add(informacion, BorderLayout.WEST);
+        cabecera.add(busqueda, BorderLayout.EAST);
 
         modeloTabla = new DefaultTableModel(
                 new String[]{
@@ -319,41 +546,211 @@ public class VistaEquipo extends JFrame {
         };
 
         tablaEquipos = new JTable(modeloTabla);
-        tablaEquipos.setRowHeight(25);
-        tablaEquipos.setSelectionMode(
-                javax.swing.ListSelectionModel.SINGLE_SELECTION
-        );
 
-        tablaEquipos
-                .getTableHeader()
-                .setFont(
-                        new Font(
-                                "Arial",
-                                Font.BOLD,
-                                12
-                        )
-                );
+        configurarTabla();
 
         JScrollPane desplazamiento =
                 new JScrollPane(tablaEquipos);
 
         desplazamiento.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Equipos registrados"
-                )
+                new LineBorder(BORDE, 1, true)
         );
 
-        panelInferior.add(
-                panelBusqueda,
-                BorderLayout.NORTH
-        );
-
-        panelInferior.add(
+        tarjeta.add(cabecera, BorderLayout.NORTH);
+        tarjeta.add(
                 desplazamiento,
                 BorderLayout.CENTER
         );
 
-        return panelInferior;
+        return tarjeta;
+    }
+
+    private void configurarTabla() {
+
+        tablaEquipos.setRowHeight(34);
+        tablaEquipos.setShowVerticalLines(false);
+        tablaEquipos.setShowHorizontalLines(true);
+        tablaEquipos.setGridColor(BORDE);
+        tablaEquipos.setIntercellSpacing(
+                new Dimension(0, 1)
+        );
+
+        tablaEquipos.setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION
+        );
+
+        tablaEquipos.setSelectionBackground(PRIMARIO);
+        tablaEquipos.setSelectionForeground(Color.WHITE);
+        tablaEquipos.setFillsViewportHeight(true);
+        tablaEquipos.setAutoCreateRowSorter(true);
+
+        tablaEquipos.getTableHeader().setReorderingAllowed(
+                false
+        );
+
+        tablaEquipos.getTableHeader().setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        12
+                )
+        );
+
+        tablaEquipos.getTableHeader().setBackground(
+                new Color(241, 245, 249)
+        );
+
+        tablaEquipos.getTableHeader().setForeground(TEXTO);
+
+        tablaEquipos.getTableHeader().setPreferredSize(
+                new Dimension(0, 38)
+        );
+
+        tablaEquipos.setDefaultRenderer(
+                Object.class,
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean enfocado,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        enfocado,
+                                        fila,
+                                        columna
+                                );
+
+                        setBorder(
+                                BorderFactory.createEmptyBorder(
+                                        0, 8, 0, 8
+                                )
+                        );
+
+                        if (columna == 0 ||
+                                columna == 5 ||
+                                columna == 6) {
+
+                            setHorizontalAlignment(
+                                    SwingConstants.CENTER
+                            );
+
+                        } else {
+                            setHorizontalAlignment(
+                                    SwingConstants.LEFT
+                            );
+                        }
+
+                        if (seleccionado) {
+
+                            componente.setBackground(PRIMARIO);
+                            componente.setForeground(Color.WHITE);
+
+                        } else {
+
+                            componente.setBackground(
+                                    fila % 2 == 0
+                                            ? Color.WHITE
+                                            : new Color(
+                                            248,
+                                            250,
+                                            252
+                                    )
+                            );
+
+                            componente.setForeground(TEXTO);
+
+                            if (columna == 6 &&
+                                    valor != null) {
+
+                                String estado =
+                                        valor.toString()
+                                                .toLowerCase();
+
+                                if (estado.contains("activo")) {
+                                    componente.setForeground(
+                                            new Color(
+                                                    22,
+                                                    163,
+                                                    74
+                                            )
+                                    );
+
+                                } else if (
+                                        estado.contains(
+                                                "mantenimiento"
+                                        )
+                                ) {
+                                    componente.setForeground(
+                                            new Color(
+                                                    234,
+                                                    88,
+                                                    12
+                                            )
+                                    );
+
+                                } else if (
+                                        estado.contains("fuera")
+                                ) {
+                                    componente.setForeground(
+                                            new Color(
+                                                    220,
+                                                    38,
+                                                    38
+                                            )
+                                    );
+                                }
+                            }
+                        }
+
+                        return componente;
+                    }
+                }
+        );
+
+        TableColumnModel columnas =
+                tablaEquipos.getColumnModel();
+
+        columnas.getColumn(0).setPreferredWidth(45);
+        columnas.getColumn(1).setPreferredWidth(90);
+        columnas.getColumn(2).setPreferredWidth(100);
+        columnas.getColumn(3).setPreferredWidth(125);
+        columnas.getColumn(4).setPreferredWidth(150);
+        columnas.getColumn(5).setPreferredWidth(145);
+        columnas.getColumn(6).setPreferredWidth(135);
+        columnas.getColumn(7).setPreferredWidth(160);
+    }
+
+    private JPanel crearTarjeta(
+            LayoutManager layout
+    ) {
+
+        JPanel tarjeta = new JPanel(layout);
+        tarjeta.setBackground(TARJETA);
+
+        tarjeta.setBorder(
+                BorderFactory.createCompoundBorder(
+                        new LineBorder(
+                                BORDE,
+                                1,
+                                true
+                        ),
+                        BorderFactory.createEmptyBorder(
+                                18, 20, 18, 20
+                        )
+                )
+        );
+
+        return tarjeta;
     }
 
     public void limpiarCampos() {
@@ -368,7 +765,7 @@ public class VistaEquipo extends JFrame {
         cmbEstado.setSelectedIndex(0);
         tablaEquipos.clearSelection();
 
-        txtTipo.requestFocus();
+        txtTipo.requestFocusInWindow();
     }
 
     public void mostrarError(String mensaje) {
