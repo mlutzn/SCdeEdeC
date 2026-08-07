@@ -17,6 +17,9 @@ import vista.VistaDashboard;
 import javax.swing.*;
 import java.sql.SQLException;
 
+import reportes.controller.ReporteController;
+import reportes.vista.VistaReporte;
+
 public class DashboardController {
 
     private final VistaDashboard vista;
@@ -61,9 +64,7 @@ public class DashboardController {
 
         vista.getBtnReportes()
                 .addActionListener(
-                        e -> mostrarModuloEnDesarrollo(
-                                "Reportes"
-                        )
+                        e -> abrirReportes()
                 );
 
         vista.getBtnSalir()
@@ -117,6 +118,14 @@ public class DashboardController {
         new MantenimientoController(
                 vistaMantenimiento
         );
+    }
+
+    private void abrirReportes() {
+
+        VistaReporte vistaReporte =
+                new VistaReporte();
+
+        new ReporteController(vistaReporte);
     }
 
     private void mostrarModuloEnDesarrollo(
