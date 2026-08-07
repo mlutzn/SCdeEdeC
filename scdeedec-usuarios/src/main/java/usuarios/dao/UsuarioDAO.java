@@ -103,17 +103,26 @@ public class UsuarioDAO {
         }
     }
 
-    public List<EquipoItem> listarEquiposDisponibles() throws SQLException {
+    public List<EquipoItem> listarEquiposDisponibles(Integer idUsuarioActual) throws SQLException {
         List<EquipoItem> lista = new ArrayList<>();
-        String sql = "SELECT idEquipo, tipo, marca, modelo FROM SCdeEdeC_Equipo";
+        String sql = "SELECT idEquipo, tipo, marca, modelo FROM SCdeEdeC_Equipo " +
+                "WHERE idEquipo NOT IN (" +
+                "  SELECT idEquipo FROM SCdeEdeC_Usuario " +
+                "  WHERE idEquipo IS NOT NULL AND idUsuario <> ?" +
+                ")";
 
         try (Connection con = ConexionBD.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                String desc = rs.getString("tipo") + " - " + rs.getString("marca") + " " + rs.getString("modelo");
-                lista.add(new EquipoItem(rs.getInt("idEquipo"), desc));
+            // Si es un usuario nuevo (idUsuarioActual == null), usamos 0: ningún usuario real tiene ese id,
+            // así que la subconsulta excluye TODOS los equipos ya asignados, tal como debe ser.
+            ps.setInt(1, (idUsuarioActual != null) ? idUsuarioActual : 0);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String desc = rs.getString("tipo") + " - " + rs.getString("marca") + " " + rs.getString("modelo");
+                    lista.add(new EquipoItem(rs.getInt("idEquipo"), desc));
+                }
             }
         }
         return lista;

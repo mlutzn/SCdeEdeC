@@ -19,7 +19,7 @@ public class UsuarioController {
     public UsuarioController(VistaUsuario vista) {
         this.vista = vista;
         inicializarEventos(); //un metodo que conecta cada botón de la Vista con lo que debe pasar al hacer clic.
-        cargarEquipos();
+        cargarEquipos(null);
         cargarTodos(); // apenas arranca, llena la tabla con los usuarios que ya existan en la BD
     }
 
@@ -51,6 +51,7 @@ public class UsuarioController {
             vista.mostrarExito("Usuario registrado correctamente");
             vista.limpiarCampos();
             cargarTodos();
+            cargarEquipos(null);
         }
 
         catch (IllegalArgumentException ex)
@@ -96,6 +97,7 @@ public class UsuarioController {
             vista.mostrarExito("Usuario actualizado correctamente");
             vista.limpiarCampos();
             cargarTodos();
+            cargarEquipos(null);
         } catch (IllegalArgumentException ex) {
             vista.mostrarError(ex.getMessage());
         } catch (SQLException ex) {
@@ -115,6 +117,7 @@ public class UsuarioController {
             service.eliminar(idUsuario);
             vista.mostrarExito("Usuario eliminado correctamente");
             cargarTodos();
+            cargarEquipos(null);
         } catch (SQLException ex) {
             vista.mostrarError("Error de base de datos: " + ex.getMessage());
         }
@@ -144,15 +147,20 @@ public class UsuarioController {
         }
     }
 
-    private void cargarEquipos() {
+    private void cargarEquipos(Integer idUsuarioActual) {
         try {
             UsuarioDAO dao = new UsuarioDAO();
-            List<EquipoItem> equipos = dao.listarEquiposDisponibles();
+            List<EquipoItem> equipos = dao.listarEquiposDisponibles(idUsuarioActual);
             vista.getCmbEquipo().removeAllItems();
+
+            // idEquipo = 0 es un valor "sentinel": ningún equipo real tiene ese id (arrancan en 1),
+            // así que lo usamos para representar "sin equipo asignado".
+            vista.getCmbEquipo().addItem(new EquipoItem(0, "-- Ninguno --"));
+
             for (EquipoItem eq : equipos) {
                 vista.getCmbEquipo().addItem(eq);
             }
-            vista.getCmbEquipo().setSelectedIndex(-1);
+            vista.getCmbEquipo().setSelectedIndex(0);
         } catch (SQLException ex) {
             vista.mostrarError("No se pudieron cargar los equipos: " + ex.getMessage());
         }
@@ -160,17 +168,25 @@ public class UsuarioController {
 
     private Integer obtenerIdEquipoSeleccionado() {
         EquipoItem seleccionado = (EquipoItem) vista.getCmbEquipo().getSelectedItem();
-        return (seleccionado != null) ? seleccionado.getIdEquipo() : null;
+        if (seleccionado == null || seleccionado.getIdEquipo() == 0) {
+            return null;
+        }
+        return seleccionado.getIdEquipo();
     }
 
     private void cargarFilaSeleccionada() {
         int fila = vista.getTablaUsuarios().getSelectedRow();
         if (fila == -1) return;
 
+        int idUsuario = (int) vista.getTablaUsuarios().getValueAt(fila, 0);
+
         vista.getTxtNombre().setText((String) vista.getTablaUsuarios().getValueAt(fila, 1));
         vista.getTxtApellido().setText((String) vista.getTablaUsuarios().getValueAt(fila, 2));
         vista.getTxtEmail().setText((String) vista.getTablaUsuarios().getValueAt(fila, 3));
         vista.getTxtTelefono().setText((String) vista.getTablaUsuarios().getValueAt(fila, 4));
+
+        // Recarga el combo para este usuario: ve su propio equipo + los que estén libres
+        cargarEquipos(idUsuario);
 
         Object idEquipoObj = vista.getTablaUsuarios().getValueAt(fila, 5);
         if (idEquipoObj != null) {
