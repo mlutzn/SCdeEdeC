@@ -36,14 +36,17 @@ public class UsuarioService {
 
     // Reglas de negocio: acá decidimos qué es un usuario "válido"
     private void validar(Usuario u) {
-        if (u.getNombre() == null || u.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+        if (u.getNombre() == null || !u.getNombre().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]{2,50}")) {
+            throw new IllegalArgumentException("El nombre solo debe contener letras");
         }
-        if (u.getApellido() == null || u.getApellido().isBlank()) {
-            throw new IllegalArgumentException("El apellido es obligatorio");
+        if (u.getApellido() == null || !u.getApellido().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]{2,50}")) {
+            throw new IllegalArgumentException("El apellido solo debe contener letras");
         }
         if (u.getEmail() == null || !u.getEmail().contains("@")) {
             throw new IllegalArgumentException("El email no es válido");
+        }
+        if (u.getTelefono() == null || !u.getTelefono().matches("\\+?[0-9\\s\\-()]{7,20}")) {
+            throw new IllegalArgumentException("El teléfono no es válido");
         }
     }
 }
