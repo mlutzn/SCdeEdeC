@@ -162,8 +162,8 @@ public class VistaReporte extends JFrame {
         tablaReportes.setAutoCreateRowSorter(true);
 
         tablaReportes.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tablaReportes.getTableHeader().setBackground(new Color(241, 245, 249));
-        tablaReportes.getTableHeader().setForeground(COLOR_TEXTO);
+        tablaReportes.getTableHeader().setBackground(new Color(15, 23, 42));
+        tablaReportes.getTableHeader().setForeground(Color.WHITE);
         tablaReportes.getTableHeader().setPreferredSize(new Dimension(0, 40));
         tablaReportes.getTableHeader().setReorderingAllowed(false);
 
