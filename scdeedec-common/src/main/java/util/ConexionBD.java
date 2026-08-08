@@ -95,6 +95,31 @@ public class ConexionBD {
                         "  CONSTRAINT fk_mantenimiento_equipo FOREIGN KEY (idEquipo) REFERENCES SCdeEdeC_Equipo(idEquipo) ON DELETE CASCADE" +
                         ")";
 
+        String sqlReparacion =
+                "CREATE TABLE IF NOT EXISTS SCdeEdeC_Reparacion (" +
+                        "  idReparacion INT AUTO_INCREMENT PRIMARY KEY," +
+                        "  idEquipo INT NOT NULL," +
+                        "  fechaIngreso DATE NOT NULL," +
+                        "  fallaReportada VARCHAR(255) NOT NULL," +
+                        "  diagnostico VARCHAR(500) NULL," +
+                        "  solucion VARCHAR(500) NULL," +
+                        "  tecnico VARCHAR(100) NOT NULL," +
+                        "  costo DECIMAL(12,2) NOT NULL DEFAULT 0.00," +
+                        "  estado VARCHAR(30) NOT NULL DEFAULT 'Pendiente'," +
+                        "  fechaEntrega DATE NULL," +
+                        "  observaciones TEXT NULL," +
+                        "  fechaRegistro TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP," +
+                        "  CONSTRAINT fk_reparacion_equipo FOREIGN KEY (idEquipo) REFERENCES SCdeEdeC_Equipo(idEquipo) ON DELETE CASCADE" +
+                        ")";
+
+        String sqlVistaResumen =
+                "CREATE OR REPLACE VIEW vw_resumen_general AS SELECT " +
+                        "  (SELECT COUNT(*) FROM SCdeEdeC_Equipo) AS totalEquipos," +
+                        "  (SELECT COUNT(*) FROM SCdeEdeC_Usuario) AS totalUsuarios," +
+                        "  (SELECT COUNT(*) FROM SCdeEdeC_Mantenimiento) AS totalMantenimientos," +
+                        "  (SELECT COUNT(*) FROM SCdeEdeC_Reparacion) AS totalReparaciones," +
+                        "  (SELECT COUNT(*) FROM SCdeEdeC_Reparacion WHERE estado = 'Pendiente') AS reparacionesPendientes";
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
 
@@ -102,6 +127,8 @@ public class ConexionBD {
             stmt.execute(sqlEquipo);
             stmt.execute(sqlUsuario);
             stmt.execute(sqlMantenimiento);
+            stmt.execute(sqlReparacion);
+            stmt.execute(sqlVistaResumen);
 
             System.out.println("✅ Tablas verificadas/creadas correctamente.");
             return true;
