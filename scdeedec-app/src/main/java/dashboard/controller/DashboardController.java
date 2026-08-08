@@ -9,12 +9,17 @@ import equipos.vista.VistaEquipo;
 import mantenimientos.controller.MantenimientoController;
 import mantenimientos.vista.VistaMantenimiento;
 
+import reparaciones.controller.ReparacionController;
+import reparaciones.vista.VistaReparacion;
+
 import usuarios.controller.UsuarioController;
 import usuarios.vista.VistaUsuario;
 
 import vista.VistaDashboard;
 
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 
 import reportes.controller.ReporteController;
@@ -24,6 +29,12 @@ public class DashboardController {
 
     private final VistaDashboard vista;
     private final DashboardService service;
+
+    private VistaEquipo vistaEquipoAbierta;
+    private VistaUsuario vistaUsuarioAbierta;
+    private VistaMantenimiento vistaMantenimientoAbierta;
+    private VistaReparacion vistaReparacionAbierta;
+    private VistaReporte vistaReporteAbierta;
 
     public DashboardController(VistaDashboard vista) {
         this.vista = vista;
@@ -57,9 +68,7 @@ public class DashboardController {
 
         vista.getBtnReparaciones()
                 .addActionListener(
-                        e -> mostrarModuloEnDesarrollo(
-                                "Reparaciones"
-                        )
+                        e -> abrirReparaciones()
                 );
 
         vista.getBtnReportes()
@@ -95,37 +104,97 @@ public class DashboardController {
     }
 
     private void abrirEquipos() {
+        if (traerAlFrente(vistaEquipoAbierta)) return;
 
-        VistaEquipo vistaEquipo =
-                new VistaEquipo();
-
+        VistaEquipo vistaEquipo = new VistaEquipo();
         new EquipoController(vistaEquipo);
+
+        vistaEquipoAbierta = vistaEquipo;
+        vistaEquipo.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                vistaEquipoAbierta = null;
+            }
+        });
     }
 
     private void abrirUsuarios() {
+        if (traerAlFrente(vistaUsuarioAbierta)) return;
 
-        VistaUsuario vistaUsuario =
-                new VistaUsuario();
-
+        VistaUsuario vistaUsuario = new VistaUsuario();
         new UsuarioController(vistaUsuario);
+
+        vistaUsuarioAbierta = vistaUsuario;
+        vistaUsuario.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                vistaUsuarioAbierta = null;
+            }
+        });
     }
 
     private void abrirMantenimientos() {
+        if (traerAlFrente(vistaMantenimientoAbierta)) return;
 
-        VistaMantenimiento vistaMantenimiento =
-                new VistaMantenimiento();
+        VistaMantenimiento vistaMantenimiento = new VistaMantenimiento();
+        new MantenimientoController(vistaMantenimiento);
 
-        new MantenimientoController(
-                vistaMantenimiento
-        );
+        vistaMantenimientoAbierta = vistaMantenimiento;
+        vistaMantenimiento.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                vistaMantenimientoAbierta = null;
+            }
+        });
+    }
+
+    private void abrirReparaciones() {
+        if (traerAlFrente(vistaReparacionAbierta)) return;
+
+        VistaReparacion vistaReparacion = new VistaReparacion();
+        new ReparacionController(vistaReparacion);
+
+        vistaReparacionAbierta = vistaReparacion;
+        vistaReparacion.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                vistaReparacionAbierta = null;
+            }
+        });
     }
 
     private void abrirReportes() {
+        if (traerAlFrente(vistaReporteAbierta)) return;
 
-        VistaReporte vistaReporte =
-                new VistaReporte();
-
+        VistaReporte vistaReporte = new VistaReporte();
         new ReporteController(vistaReporte);
+
+        vistaReporteAbierta = vistaReporte;
+        vistaReporte.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                vistaReporteAbierta = null;
+            }
+        });
+    }
+
+    /**
+     * Si la ventana ya está abierta (no fue cerrada/descartada), la trae al
+     * frente y le da foco en vez de abrir una segunda instancia del mismo
+     * módulo. Devuelve true si reutilizó una ventana existente.
+     */
+    private boolean traerAlFrente(JFrame ventana) {
+        if (ventana == null || !ventana.isDisplayable()) {
+            return false;
+        }
+
+        if (ventana.getExtendedState() == JFrame.ICONIFIED) {
+            ventana.setExtendedState(JFrame.NORMAL);
+        }
+
+        ventana.toFront();
+        ventana.requestFocus();
+        return true;
     }
 
     private void mostrarModuloEnDesarrollo(

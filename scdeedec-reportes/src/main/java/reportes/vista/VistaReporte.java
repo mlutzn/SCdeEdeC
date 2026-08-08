@@ -4,12 +4,15 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import util.DatePickerField;
 
 public class VistaReporte extends JFrame {
 
     private JComboBox<String> cmbTipoReporte;
     private JTextField txtDesde;
     private JTextField txtHasta;
+    private JButton btnCalendarioDesde;
+    private JButton btnCalendarioHasta;
     private JButton btnGenerar;
 
     private JTable tablaReportes;
@@ -96,11 +99,13 @@ public class VistaReporte extends JFrame {
 
         txtDesde = crearCampoTexto("YYYY-MM-DD");
         txtHasta = crearCampoTexto("YYYY-MM-DD");
+        btnCalendarioDesde = DatePickerField.crearBotonCalendario(txtDesde, "yyyy-MM-dd");
+        btnCalendarioHasta = DatePickerField.crearBotonCalendario(txtHasta, "yyyy-MM-dd");
         habilitarFiltroFechas(false);
 
         campos.add(crearGrupoCampo("Tipo de reporte", cmbTipoReporte));
-        campos.add(crearGrupoCampo("Desde", txtDesde));
-        campos.add(crearGrupoCampo("Hasta", txtHasta));
+        campos.add(crearGrupoCampo("Desde", envolverConCalendario(txtDesde, btnCalendarioDesde)));
+        campos.add(crearGrupoCampo("Hasta", envolverConCalendario(txtHasta, btnCalendarioHasta)));
 
         tarjeta.add(campos, BorderLayout.CENTER);
 
@@ -178,6 +183,15 @@ public class VistaReporte extends JFrame {
         campo.putClientProperty("JTextField.placeholderText", placeholder);
         estilizarEntrada(campo);
         return campo;
+    }
+
+    /** Envuelve el campo de fecha + su botón de calendario en un solo panel para el grid del formulario. */
+    private JPanel envolverConCalendario(JTextField campo, JButton botonCalendario) {
+        JPanel contenedor = new JPanel(new BorderLayout(6, 0));
+        contenedor.setOpaque(false);
+        contenedor.add(campo, BorderLayout.CENTER);
+        contenedor.add(botonCalendario, BorderLayout.EAST);
+        return contenedor;
     }
 
     private JPanel crearGrupoCampo(String texto, JComponent componente) {
@@ -259,6 +273,8 @@ public class VistaReporte extends JFrame {
     public void habilitarFiltroFechas(boolean habilitado) {
         txtDesde.setEnabled(habilitado);
         txtHasta.setEnabled(habilitado);
+        btnCalendarioDesde.setEnabled(habilitado);
+        btnCalendarioHasta.setEnabled(habilitado);
     }
 
     // Getters que utiliza ReporteController
