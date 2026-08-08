@@ -597,10 +597,10 @@ public class VistaEquipo extends JFrame {
         );
 
         tablaEquipos.getTableHeader().setBackground(
-                new Color(241, 245, 249)
+                new Color(15, 23, 42)
         );
 
-        tablaEquipos.getTableHeader().setForeground(TEXTO);
+        tablaEquipos.getTableHeader().setForeground(Color.WHITE);
 
         tablaEquipos.getTableHeader().setPreferredSize(
                 new Dimension(0, 38)
