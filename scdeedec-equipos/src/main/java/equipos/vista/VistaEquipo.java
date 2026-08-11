@@ -6,6 +6,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import util.DatePickerField;
 
 public class VistaEquipo extends JFrame {
 
@@ -181,6 +182,19 @@ public class VistaEquipo extends JFrame {
                 "dd/MM/yyyy"
         );
 
+        // Botón de calendario reutilizado de scdeedec-common: escribe la
+        // fecha elegida directamente en txtFechaAdquisicion, sin necesidad
+        // de cambiar su tipo (sigue siendo un JTextField normal, tal como
+        // lo espera EquipoController).
+        JPanel panelFechaAdquisicion = new JPanel(new BorderLayout(4, 0));
+        panelFechaAdquisicion.setOpaque(false);
+        panelFechaAdquisicion.setPreferredSize(new Dimension(250, 36));
+        panelFechaAdquisicion.add(txtFechaAdquisicion, BorderLayout.CENTER);
+        panelFechaAdquisicion.add(
+                DatePickerField.crearBotonCalendario(txtFechaAdquisicion, "dd/MM/yyyy"),
+                BorderLayout.EAST
+        );
+
         txtUbicacion = crearCampo(
                 "Ejemplo: Oficina, Laboratorio o Bodega"
         );
@@ -240,7 +254,7 @@ public class VistaEquipo extends JFrame {
                 0,
                 2,
                 "Fecha de adquisición",
-                txtFechaAdquisicion
+                panelFechaAdquisicion
         );
 
         agregarCampo(
