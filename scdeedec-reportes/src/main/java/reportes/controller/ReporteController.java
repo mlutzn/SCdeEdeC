@@ -114,6 +114,7 @@ public class ReporteController {
             modelo.addRow(fila);
         }
 
+        vista.ajustarAnchoColumnas();
         vista.getLblTotal().setText("Total: " + reporte.getTotalFilas() + " filas");
     }
 

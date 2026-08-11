@@ -54,31 +54,50 @@ public class VistaReparacion extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Abre maximizada: así siempre usa todo el alto disponible de la
+        // pantalla donde se abra, en vez de depender de un tamaño fijo
+        // (1220x950) que puede no entrar completo en pantallas más chicas.
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+
         JPanel panelPrincipal = new JPanel(new BorderLayout(0, 18));
         panelPrincipal.setBackground(COLOR_FONDO);
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
         panelPrincipal.add(crearEncabezado(), BorderLayout.NORTH);
 
-        JScrollPane scrollContenido = new JScrollPane(crearContenido());
-        scrollContenido.setBorder(null);
-        scrollContenido.getVerticalScrollBar().setUnitIncrement(16);
-        scrollContenido.getViewport().setOpaque(false);
-        scrollContenido.setOpaque(false);
+        // Formulario arriba y tabla abajo, separados por un divisor que
+        // el usuario puede arrastrar con el mouse (JSplitPane), en vez de
+        // un BorderLayout fijo. Así, aunque la ventana no sea muy alta,
+        // siempre queda algo de la tabla visible y se puede agrandar
+        // arrastrando la barra divisoria — no depende de adivinar el
+        // tamaño exacto de formulario + tabla de antemano.
+        JScrollPane scrollFormulario = new JScrollPane(crearFormulario());
+        scrollFormulario.setBorder(null);
+        scrollFormulario.getVerticalScrollBar().setUnitIncrement(16);
+        scrollFormulario.setOpaque(false);
+        scrollFormulario.getViewport().setOpaque(false);
 
-        panelPrincipal.add(scrollContenido, BorderLayout.CENTER);
+        JSplitPane divisor = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                scrollFormulario,
+                crearPanelTabla()
+        );
+        divisor.setOpaque(false);
+        divisor.setBorder(null);
+        divisor.setContinuousLayout(true);
+        divisor.setResizeWeight(0.55); // si la ventana crece, la tabla recibe más espacio extra que el formulario
+        divisor.setDividerSize(10);
+
+        panelPrincipal.add(divisor, BorderLayout.CENTER);
 
         setContentPane(panelPrincipal);
         getRootPane().setDefaultButton(btnRegistrar);
         setVisible(true);
-    }
 
-    private JPanel crearContenido() {
-        JPanel contenido = new JPanel(new BorderLayout(0, 12));
-        contenido.setOpaque(false);
-        contenido.add(crearFormulario(), BorderLayout.NORTH);
-        contenido.add(crearPanelTabla(), BorderLayout.CENTER);
-        return contenido;
+        // El divisor necesita que la ventana ya esté visible (con su
+        // tamaño real, maximizado) para calcular una posición inicial
+        // sensata — por eso se fija después de setVisible(true).
+        divisor.setDividerLocation(0.5);
     }
 
     private JPanel crearEncabezado() {
@@ -367,7 +386,7 @@ public class VistaReparacion extends JFrame {
         return new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                             boolean hasFocus, int row, int column) {
+                                                           boolean hasFocus, int row, int column) {
                 Component componente = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
                 if (isSelected) {

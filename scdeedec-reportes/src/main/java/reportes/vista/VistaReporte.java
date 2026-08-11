@@ -34,6 +34,7 @@ public class VistaReporte extends JFrame {
         setMinimumSize(new Dimension(950, 620));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // más espacio horizontal para las columnas
 
         JPanel panelPrincipal = new JPanel(new BorderLayout(0, 18));
         panelPrincipal.setBackground(COLOR_FONDO);
@@ -161,6 +162,30 @@ public class VistaReporte extends JFrame {
         tablaReportes.setIntercellSpacing(new Dimension(0, 1));
         tablaReportes.setAutoCreateRowSorter(true);
 
+        // Antes (AUTO_RESIZE_ALL_COLUMNS, el modo por defecto) obligaba a
+        // que la suma de columnas calzara exacto con el ancho visible,
+        // aplastando proporcionalmente TODAS las columnas por igual —
+        // incluso las que ajustarAnchoColumnas() había hecho más anchas
+        // a propósito por tener texto largo. Con AUTO_RESIZE_OFF, cada
+        // columna respeta el ancho que se le asignó, y si no entran todas
+        // en la ventana aparece una barra de scroll horizontal.
+        tablaReportes.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        // Doble clic en una fila: abre el detalle completo, más fácil de
+        // leer que ir agrandando columnas o pasando el mouse celda por
+        // celda para ver los tooltips.
+        tablaReportes.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evento) {
+                if (evento.getClickCount() == 2) {
+                    int fila = tablaReportes.rowAtPoint(evento.getPoint());
+                    if (fila >= 0) {
+                        mostrarDetalleFila(tablaReportes.convertRowIndexToModel(fila));
+                    }
+                }
+            }
+        });
+
         tablaReportes.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         tablaReportes.getTableHeader().setBackground(new Color(15, 23, 42));
         tablaReportes.getTableHeader().setForeground(Color.WHITE);
@@ -261,6 +286,17 @@ public class VistaReporte extends JFrame {
                     ((JComponent) componente).setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
                 }
 
+                // Tooltip con el texto completo: útil para columnas angostas
+                // como "Observaciones", "Diagnóstico" o "Solución", que se
+                // ven cortadas con "..." pero al pasar el mouse por encima
+                // se puede leer el contenido completo sin tener que
+                // agrandar la columna a mano.
+                if (componente instanceof JComponent) {
+                    ((JComponent) componente).setToolTipText(
+                            value != null ? value.toString() : null
+                    );
+                }
+
                 return componente;
             }
         };
@@ -275,6 +311,95 @@ public class VistaReporte extends JFrame {
         txtHasta.setEnabled(habilitado);
         btnCalendarioDesde.setEnabled(habilitado);
         btnCalendarioHasta.setEnabled(habilitado);
+    }
+
+    /**
+     * Muestra todos los valores de una fila en un diálogo, uno debajo del
+     * otro (columna: valor), con el texto largo envuelto en varias líneas
+     * en vez de cortado con "...". Se abre con doble clic sobre la fila.
+     */
+    private void mostrarDetalleFila(int filaModelo) {
+        JPanel panelDetalle = new JPanel();
+        panelDetalle.setLayout(new BoxLayout(panelDetalle, BoxLayout.Y_AXIS));
+        panelDetalle.setBackground(Color.WHITE);
+        panelDetalle.setBorder(BorderFactory.createEmptyBorder(8, 4, 8, 4));
+
+        for (int col = 0; col < modeloTabla.getColumnCount(); col++) {
+            String etiqueta = tablaReportes.getColumnName(col);
+            Object valorObj = modeloTabla.getValueAt(filaModelo, col);
+            String valor = valorObj != null ? valorObj.toString() : "—";
+
+            JLabel lblEtiqueta = new JLabel(etiqueta.toUpperCase());
+            lblEtiqueta.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            lblEtiqueta.setForeground(COLOR_SECUNDARIO);
+            lblEtiqueta.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JTextArea txtValor = new JTextArea(valor);
+            txtValor.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            txtValor.setForeground(COLOR_TEXTO);
+            txtValor.setLineWrap(true);
+            txtValor.setWrapStyleWord(true);
+            txtValor.setEditable(false);
+            txtValor.setOpaque(false);
+            txtValor.setAlignmentX(Component.LEFT_ALIGNMENT);
+            txtValor.setMaximumSize(new Dimension(520, Integer.MAX_VALUE));
+
+            panelDetalle.add(lblEtiqueta);
+            panelDetalle.add(Box.createVerticalStrut(2));
+            panelDetalle.add(txtValor);
+            panelDetalle.add(Box.createVerticalStrut(12));
+        }
+
+        JScrollPane scroll = new JScrollPane(panelDetalle);
+        scroll.setPreferredSize(new Dimension(560, 480));
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+        JOptionPane.showMessageDialog(
+                this,
+                scroll,
+                "Detalle",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
+
+    /**
+     * Ajusta el ancho de cada columna según su contenido más largo (encabezado
+     * o celdas), en vez de repartir el espacio en partes iguales entre todas
+     * las columnas. Así, columnas de texto largo como "Observaciones" o
+     * "Diagnóstico" quedan más anchas automáticamente, y columnas cortas
+     * como "Id" o "Costo" quedan angostas. Se llama desde el Controller
+     * después de cargar los datos de un reporte (mostrarReporte).
+     */
+    public void ajustarAnchoColumnas() {
+        final int anchoMinimo = 60;
+        final int anchoMaximo = 260;
+        final int margen = 24;
+
+        javax.swing.table.TableColumnModel columnas = tablaReportes.getColumnModel();
+
+        for (int col = 0; col < tablaReportes.getColumnCount(); col++) {
+            int anchoDeseado = anchoMinimo;
+
+            // Ancho del texto del encabezado
+            FontMetrics metricaEncabezado = tablaReportes.getTableHeader().getFontMetrics(
+                    tablaReportes.getTableHeader().getFont()
+            );
+            String encabezado = tablaReportes.getColumnName(col);
+            anchoDeseado = Math.max(anchoDeseado, metricaEncabezado.stringWidth(encabezado) + margen);
+
+            // Ancho del contenido más largo de esa columna
+            FontMetrics metricaCelda = tablaReportes.getFontMetrics(tablaReportes.getFont());
+            for (int fila = 0; fila < tablaReportes.getRowCount(); fila++) {
+                Object valor = tablaReportes.getValueAt(fila, col);
+                String texto = valor != null ? valor.toString() : "";
+                anchoDeseado = Math.max(anchoDeseado, metricaCelda.stringWidth(texto) + margen);
+            }
+
+            anchoDeseado = Math.min(anchoDeseado, anchoMaximo);
+
+            columnas.getColumn(col).setPreferredWidth(anchoDeseado);
+        }
     }
 
     // Getters que utiliza ReporteController
